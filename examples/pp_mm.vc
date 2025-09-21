@@ -1,0 +1,6 @@
+
+let x: i32 = 68;
+x++;x++;
+printf("%d\n", x);
+x--;
+printf("%d\n", x);

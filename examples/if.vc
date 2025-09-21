@@ -1,0 +1,11 @@
+let x: i32 = 0;
+
+if (x > 1) {
+  printf("yes x > 1\n");
+} else if (x == 1) {
+  printf("nice x == 1\n");
+} else {
+  printf("true x < 1\n");
+}
+
+

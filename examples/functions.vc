@@ -1,0 +1,14 @@
+fn test2(x: i32): i32 {
+  printf("hello %d\n", x);
+}
+
+let z: i64 = fn (): i32 {
+  printf("hello z\n");
+};
+
+let y: i64 = z;
+
+z();
+y();
+
+test2(69);

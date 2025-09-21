@@ -1,0 +1,15 @@
+let v_i32: i32 = 32;
+let v_i64: i64 = 64;
+
+let v_f32: f32 = 3.5;
+let v_f64: f64 = 6.25;
+
+let v_u8: u8 = 255;
+let v_i8: i8 = -8;
+let v_u16: u16 = 65535;
+let v_i16: i16 = -1234;
+let v_byte: byte = 42;
+let v_ubyte: ubyte = 7;
+
+let v_bool_true: bool = true;
+let v_bool_false: bool = false;

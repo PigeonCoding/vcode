@@ -1,0 +1,7 @@
+
+let x: i32 = 34;
+let y: i32 = 35;
+
+printf("%d but also %d\n", x + y, x + y + 351);
+printf("you can also sub %d\n", x - y);
+printf("mod %d and also mult %d and div %d\n", x % y, x * y, x / y);

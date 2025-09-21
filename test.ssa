@@ -1,0 +1,12 @@
+data $_1 = { b "hi\n", b 0 }
+export function w $main() {
+@start
+  %x =l alloc8 8
+  %t0 =w copy 0
+  %tt =l %t0
+  # storel %t0, %x
+  # %t1 =l copy $_1
+  # %r =w call $printf ( l %t1,  )
+
+  ret 0
+}

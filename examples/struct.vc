@@ -1,0 +1,15 @@
+
+struct bar {
+  z: i32,
+};
+
+struct foo {
+  x: i32,
+  y: i64,
+  z: bar,
+};
+
+let v: foo;
+v.x = 10;
+v.z.z = 9;
+printf("%d\n", v.x);

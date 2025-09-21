@@ -1,0 +1,9 @@
+vcode
+vcode.exe
+build
+qbe/qbe
+qbe/qbe.exe
+out*
+nob
+nob.exe
+*.old
