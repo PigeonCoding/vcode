@@ -2,6 +2,7 @@
 
 ## Requirements
 - `odin`
+- `gcc` or `clang` in yout path
 
 ## How to build
 ```console
