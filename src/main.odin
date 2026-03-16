@@ -18,8 +18,7 @@ main :: proc() {
   cont: flag.flag_container
   cont.flags_map = make(map[string]^flag.flag_t)
   cont.skip_pogram_name = true
-  // cont.flag_prefix = "--"
-
+  
   flag.add_flag(&cont, "-help", false, "Print this help to stdout and exit with 0")
   flag.add_flag(&cont, "ssa", false, "Print generated C code to stdout")
   flag.add_flag(&cont, "s", false, "silences messages")
