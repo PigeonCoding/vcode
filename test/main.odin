@@ -30,7 +30,7 @@ build_compiler :: proc() -> bool {
     return false
   }
   b.flags.debug = true
-  b.directory = "src_odin"
+  b.directory = "src"
 
   cmd := odin_builder.build_cmd(&b)
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {

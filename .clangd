@@ -1,2 +1,0 @@
-CompileFlags:
-  Add: [-Wno-c23-extensions, -Wall, -Wextra, -Wimplicit-fallthrough, -Wformat-zero-length, -Wmisleading-indentation- -Wno-format-security]
