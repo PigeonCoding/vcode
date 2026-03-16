@@ -8,14 +8,14 @@ import "core:strings"
 EXMP_FOLDER :: "examples"
 
 examples :: []string{
-  "hello.vc",
-  "if.vc",
-  "while.vc",
-  "ops.vc",
-  "pp_mm.vc",
-  "struct.vc",
-  "types.vc",
-  "functions.vc",
+  "hello",
+  "if",
+  "while",
+  "ops",
+  "pp_mm",
+  "struct",
+  "types",
+  "functions",
 }
 
 build_compiler :: proc() -> bool {
@@ -43,7 +43,7 @@ build_compiler :: proc() -> bool {
 compile_example :: proc(ex: string) -> bool {
   base := strings.trim_suffix(ex, ".vc")
   out_path := fmt.tprintf("build/%s", ex)
-  in_file := fmt.tprintf("%s/%s", EXMP_FOLDER, ex)
+  in_file := fmt.tprintf("%s/%s.vc", EXMP_FOLDER, ex)
   cmd := []string{"./build/vcode", in_file, "-o", out_path}
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
     fmt.eprintln(err)
@@ -53,6 +53,8 @@ compile_example :: proc(ex: string) -> bool {
 }
 
 main :: proc() {
+  os.make_directory("build")
+
   if !build_compiler() {
     os.exit(1)
   }

@@ -18,6 +18,7 @@ main :: proc() {
   b.flags.debug = true
   b.directory = "src"
 
+  os.make_directory("build")
   cmd := odin_builder.build_cmd(&b)
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
     fmt.eprintln(err)
