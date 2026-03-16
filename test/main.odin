@@ -5,15 +5,17 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 
+EXMP_FOLDER :: "examples"
+
 examples :: []string{
-  "examples/hello.vc",
-  "examples/if.vc",
-  "examples/while.vc",
-  "examples/ops.vc",
-  "examples/pp_mm.vc",
-  "examples/struct.vc",
-  "examples/types.vc",
-  "examples/functions.vc",
+  "hello.vc",
+  "if.vc",
+  "while.vc",
+  "ops.vc",
+  "pp_mm.vc",
+  "struct.vc",
+  "types.vc",
+  "functions.vc",
 }
 
 build_compiler :: proc() -> bool {
@@ -40,8 +42,9 @@ build_compiler :: proc() -> bool {
 
 compile_example :: proc(ex: string) -> bool {
   base := strings.trim_suffix(ex, ".vc")
-  out_path := fmt.tprintf("build/tests/%s", base)
-  cmd := []string{"./build/vcode", "-o", out_path, ex}
+  out_path := fmt.tprintf("build/%s", ex)
+  in_file := fmt.tprintf("%s/%s", EXMP_FOLDER, ex)
+  cmd := []string{"./build/vcode", in_file, "-o", out_path}
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
     fmt.eprintln(err)
     return false
@@ -50,14 +53,9 @@ compile_example :: proc(ex: string) -> bool {
 }
 
 main :: proc() {
-  if err := os.make_directory_all("build/tests"); err != nil {
-    // fmt.eprintln(err)
-    // os.exit(1)
+  if !build_compiler() {
+    os.exit(1)
   }
-
-  // if !build_compiler() {
-  //   os.exit(1)
-  // }
 
   for ex in examples {
     if !compile_example(ex) {

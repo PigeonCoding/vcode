@@ -117,6 +117,23 @@ emit_source_line :: proc(out: ^strings.Builder, l: ^lex.lexer) {
 	fmt.sbprintf(out, "\n")
 }
 
+is_function_typedef :: proc(type_name: string) -> bool {
+	for _, v in fn_typedefs {
+		if v == type_name {
+			return true
+		}
+	}
+	return false
+}
+
+emit_var_decl_default :: proc(out: ^strings.Builder, type_name: string, var_name: string, is_custom: bool) {
+	if is_custom && !is_function_typedef(type_name) {
+		fmt.sbprintf(out, "  %s %s = {{0}};\n", type_name, var_name)
+	} else {
+		fmt.sbprintf(out, "  %s %s = 0;\n", type_name, var_name)
+	}
+}
+
 is_struct_type :: proc(type_name: string) -> bool {
 	return struct_types[type_name]
 }
@@ -423,7 +440,7 @@ parse_struct_decl :: proc(l: ^lex.lexer) -> bool {
 	}
 
 	emit_source_line(&typedef_output, l)
-	fmt.sbprintf(&typedef_output, "typedef struct {\n")
+	fmt.sbprintf(&typedef_output, "typedef struct {{\n")
 
 	for lex.get_token(l) {
 		if l.token.type == .punct && byte(l.token.intlit) == '}' {
@@ -507,7 +524,7 @@ parse_struct_decl :: proc(l: ^lex.lexer) -> bool {
 		return true
 	}
 
-	fmt.sbprintf(&typedef_output, "} %s;\n", struct_name)
+	fmt.sbprintf(&typedef_output, "}} %s;\n", struct_name)
 	return false
 }
 
@@ -589,7 +606,7 @@ fn_pass :: proc(l: ^lex.lexer) -> bool {
 		}
 
 		emit_source_line(&output, l)
-		fmt.sbprintf(&output, "%s %s%s {\n", ret_type, fn_name, args_sig)
+		fmt.sbprintf(&output, "%s %s%s {{\n", ret_type, fn_name, args_sig)
 
 		fn_typedef := fmt.tprintf("%s_t", fn_name)
 		fn_typedefs[fn_name] = fn_typedef
@@ -601,7 +618,7 @@ fn_pass :: proc(l: ^lex.lexer) -> bool {
 			return true
 		}
 
-		fmt.sbprintf(&output, "  return 0;\n}\n\n")
+		fmt.sbprintf(&output, "  return 0;\n}}\n\n")
    	case .none:
   	case .let:
   	case .while:
@@ -1083,7 +1100,7 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 						final_decl_type = inferred_decl_type
 					}
 					emit_source_line(&output, l)
-					fmt.sbprintf(&output, "  %s %s;\n", final_decl_type, var_name)
+					emit_var_decl_default(&output, final_decl_type, var_name, final_decl_tag == .custom)
 					emit_source_line(&output, l)
 					fmt.sbprintf(&output, "  %s = t%d;\n", var_name, counter.index - 1)
 				}
@@ -1093,7 +1110,7 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 				}
 			} else if !skip {
 				emit_source_line(&output, l)
-				fmt.sbprintf(&output, "  %s %s;\n", decl_type, var_name)
+				emit_var_decl_default(&output, decl_type, var_name, decl_expected_tag == .custom)
 			}
 
 			has_last_lvalue = true
@@ -1112,12 +1129,12 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 			if main_pass(l, false) do return true
 
 			if !skip {
-				fmt.sbprintf(&output, "  if (t%d) {\n", counter.index - 1)
+				fmt.sbprintf(&output, "  if (t%d) {{\n", counter.index - 1)
 			}
 
 			if main_pass(l, false) do return true
 			if !skip {
-				fmt.sbprintf(&output, "  }\n")
+				fmt.sbprintf(&output, "  }}\n")
 			}
 
 			if l.token.type == .punct && byte(l.token.intlit) == ')' {
@@ -1130,17 +1147,17 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 			if l.token.type == .id && l.token.str == "else" {
 				if !lex.get_token(l) do return true
 				if !skip {
-					fmt.sbprintf(&output, "  else {\n")
+					fmt.sbprintf(&output, "  else {{\n")
 				}
 				if main_pass(l, false) do return true
 				if !skip {
-					fmt.sbprintf(&output, "  }\n")
+					fmt.sbprintf(&output, "  }}\n")
 				}
 			}
 
 		case .while:
 			if !skip {
-				fmt.sbprintf(&output, "  while (1) {\n")
+				fmt.sbprintf(&output, "  while (1) {{\n")
 			}
 			if !lex.get_token(l) do return true
 			if main_pass(l, false) do return true
@@ -1149,7 +1166,7 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 			}
 			if main_pass(l, false) do return true
 			if !skip {
-				fmt.sbprintf(&output, "  }\n")
+				fmt.sbprintf(&output, "  }}\n")
 			}
 
 		case .fn:
@@ -1300,21 +1317,6 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 				return true
 			}
 
-			if !skip {
-				if vtype.tag == .custom {
-					fmt.sbprintf(&output, "  %s t%d = %s;\n", vtype.custom, counter.index, temp)
-				} else {
-					fmt.sbprintf(
-						&output,
-						"  %s t%d = %s;\n",
-						type_tag_to_c(vtype.tag),
-						counter.index,
-						temp,
-					)
-				}
-			}
-			counter.index += 1
-			counter.type_tag = vtype.tag
 			has_last_lvalue = true
 			last_lvalue = temp
 			has_last_lvalue_type = true
@@ -1329,8 +1331,6 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 				last_value_tag = vtype.tag
 				last_value_custom = ""
 			}
-			has_last_value_type = true
-
 			peek_member := l^
 			if lex.get_token(&peek_member) &&
 			   peek_member.token.type == .punct &&
@@ -1365,17 +1365,66 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 					}
 				}
 
-				if !skip {
+				peek_after_member := l^
+				lvalue_only := false
+				if lex.get_token(&peek_after_member) {
+					if peek_after_member.token.type == .punct &&
+					   byte(peek_after_member.token.intlit) == '=' {
+						lvalue_only = true
+					} else if peek_after_member.token.type == .plusplus ||
+					          peek_after_member.token.type == .minusminus {
+						lvalue_only = true
+					}
+				}
+
+				if !skip && !lvalue_only {
 					fmt.sbprintf(&output, "  int64_t t%d = %s;\n", counter.index, member_expr)
 				}
-				counter.index += 1
-				counter.type_tag = .i64
-				last_value_tag = .i64
-				last_value_custom = ""
-				has_last_value_type = true
+				if !lvalue_only {
+					counter.index += 1
+					counter.type_tag = .i64
+					last_value_tag = .i64
+					last_value_custom = ""
+					has_last_value_type = true
+				} else {
+					has_last_value_type = false
+				}
 				has_last_lvalue = true
 				last_lvalue = member_expr
 				has_last_lvalue_type = false
+			} else {
+				peek_after_id := l^
+				lvalue_only := false
+				if lex.get_token(&peek_after_id) {
+					if peek_after_id.token.type == .punct &&
+					   byte(peek_after_id.token.intlit) == '=' {
+						lvalue_only = true
+					} else if peek_after_id.token.type == .plusplus ||
+					          peek_after_id.token.type == .minusminus {
+						lvalue_only = true
+					}
+				}
+
+				if !skip && !lvalue_only {
+					if vtype.tag == .custom {
+						fmt.sbprintf(&output, "  %s t%d = %s;\n", vtype.custom, counter.index, temp)
+					} else {
+						fmt.sbprintf(
+							&output,
+							"  %s t%d = %s;\n",
+							type_tag_to_c(vtype.tag),
+							counter.index,
+							temp,
+						)
+					}
+				}
+				if !lvalue_only {
+					counter.index += 1
+					counter.type_tag = vtype.tag
+					has_last_value_type = true
+				} else {
+					has_last_value_type = false
+				}
 			}
 
 		}
