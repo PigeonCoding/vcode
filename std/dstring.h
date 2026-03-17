@@ -2,7 +2,7 @@
 #define DSTRING_H
 
 /*
-  dstring.h - simple dynamic string (single-header)
+  dstring.h - simple dynamic string
   This library maintains a null-terminated buffer. All append operations
   ensure `data[len] == '\0'`.
 */

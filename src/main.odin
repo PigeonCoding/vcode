@@ -77,7 +77,7 @@ main :: proc() {
   
   flag.add_flag(&cont, "-help", false, "Print this help to stdout and exit with 0")
   flag.add_flag(&cont, "s", false, "silences messages")
-  flag.add_flag(&cont, "o", "out", "sets the output file (any flag has to be set before the input file)")
+  flag.add_flag(&cont, "o", "out", "sets the output file")
   flag.add_flag(&cont, "cc", "", "sets the compiler path (overrides auto-detect)")
 
   flag.check_flags(&cont)
