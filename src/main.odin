@@ -136,7 +136,7 @@ main :: proc() {
     fmt.eprintln(err)
     return
   }
-  defer { _ = os.remove(out_path) }
+  // defer { _ = os.remove(out_path) }
   if !silent {
     fmt.printf("generated C code \n")
   }
