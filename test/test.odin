@@ -22,9 +22,9 @@ build_compiler :: proc() -> bool {
   b: odin_builder.odin_cmd_builder
   b.main_cmd = .build
   if ODIN_OS == .Linux {
-    b.flags.out = "build/vcode"
+    b.flags.out = "vcode"
   } else if ODIN_OS == .Windows {
-    b.flags.out = "build/vcode.exe"
+    b.flags.out = "vcode.exe"
   } else {
     fmt.eprintln("unsupported OS")
     return false
@@ -44,7 +44,7 @@ compile_example :: proc(ex: string) -> bool {
   base := strings.trim_suffix(ex, ".vc")
   out_path := fmt.tprintf("build/%s", ex)
   in_file := fmt.tprintf("%s/%s.vc", EXMP_FOLDER, ex)
-  cmd := []string{"./build/vcode", in_file, "-o", out_path}
+  cmd := []string{"./vcode", in_file, "-o", out_path}
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
     fmt.eprintln(err)
     return false

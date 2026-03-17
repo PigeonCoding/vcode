@@ -8,9 +8,9 @@ main :: proc() {
   b: odin_builder.odin_cmd_builder
   b.main_cmd = .build
   if ODIN_OS == .Linux {
-    b.flags.out = "build/vcode"
+    b.flags.out = "vcode"
   } else if ODIN_OS == .Windows {
-    b.flags.out = "build/vcode.exe"
+    b.flags.out = "vcode.exe"
   } else {
     fmt.println("unsupported OS")
     os.exit(1)

@@ -41,6 +41,7 @@ TypeTag :: enum u8 {
   i16     = 'h',
   bool    = 'o',
   ptr     = 'p',
+  string_ = 'S',
   custom  = 'T',
 }
 
@@ -78,6 +79,8 @@ has_last_fn_typedef : bool
 output: strings.Builder
 typedef_output: strings.Builder
 
+uses_dstring: bool
+
 init_compiler :: proc() {
   struct_types = make(map[string]bool)
   var_types = make(map[string]VarType)
@@ -87,6 +90,7 @@ init_compiler :: proc() {
   strings.builder_init(&output)
   strings.builder_init(&typedef_output)
   counter = Counter{}
+  uses_dstring = false
 }
 
 emit_c_escaped_string :: proc(out: ^strings.Builder, s: string) {
@@ -126,8 +130,8 @@ is_function_typedef :: proc(type_name: string) -> bool {
   return false
 }
 
-emit_var_decl_default :: proc(out: ^strings.Builder, type_name: string, var_name: string, is_custom: bool) {
-  if is_custom && !is_function_typedef(type_name) {
+emit_var_decl_default :: proc(out: ^strings.Builder, type_name: string, var_name: string, tag: TypeTag, is_custom: bool) {
+  if (is_custom && !is_function_typedef(type_name)) || tag == .string_ {
     fmt.sbprintf(out, "  %s %s = {{0}};\n", type_name, var_name)
   } else {
     fmt.sbprintf(out, "  %s %s = 0;\n", type_name, var_name)
@@ -169,6 +173,9 @@ resolve_decl_type :: proc(l: ^lex.lexer) -> (string, VarType, bool) {
     return "int16_t", VarType{.i16, ""}, true
   case "bool":
     return "bool", VarType{.bool, ""}, true
+  case "string":
+    uses_dstring = true
+    return "DString", VarType{.string_, ""}, true
   }
 
   if is_struct_type(l.token.str) {
@@ -200,6 +207,8 @@ type_tag_to_c :: proc(t: TypeTag) -> string {
     return "bool"
   case .ptr:
     return "const char *"
+  case .string_:
+    return "DString"
   case:
     return "int64_t"
   }
@@ -239,6 +248,7 @@ type_is_assignable :: proc(
     if lhs_custom == "" || rhs_custom == "" do return false
     return lhs_custom == rhs_custom
   }
+  if lhs_tag == .string_ || rhs_tag == .string_ do return lhs_tag == rhs_tag
   if lhs_tag == .bool || rhs_tag == .bool do return lhs_tag == rhs_tag
   if lhs_tag == .ptr || rhs_tag == .ptr do return lhs_tag == rhs_tag
   if type_tag_is_numeric(lhs_tag) && type_tag_is_numeric(rhs_tag) do return true
@@ -695,6 +705,9 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
     c_idx := counter.index - 1
     switch get_punct(l) {
     case .assign:
+      if has_last_lvalue_type {
+        counter.type_tag = last_lvalue_tag
+      }
       for lex.get_token(l) {
         if main_pass(l, false) {
           return true
@@ -1099,7 +1112,7 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
             final_decl_type = inferred_decl_type
           }
           emit_source_line(&output, l)
-          emit_var_decl_default(&output, final_decl_type, var_name, final_decl_tag == .custom)
+          emit_var_decl_default(&output, final_decl_type, var_name, final_decl_tag, final_decl_tag == .custom)
           emit_source_line(&output, l)
           fmt.sbprintf(&output, "  %s = t%d;\n", var_name, counter.index - 1)
         }
@@ -1109,7 +1122,7 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
         }
       } else if !skip {
         emit_source_line(&output, l)
-        emit_var_decl_default(&output, decl_type, var_name, decl_expected_tag == .custom)
+        emit_var_decl_default(&output, decl_type, var_name, decl_expected_tag, decl_expected_tag == .custom)
       }
 
       has_last_lvalue = true
@@ -1430,13 +1443,26 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 
   case .dqstring:
     if !skip {
-      fmt.sbprintf(&output, "  const char *t%d = ", counter.index)
-      emit_c_escaped_string(&output, l.token.str)
-      fmt.sbprintf(&output, ";\n")
+      if counter.type_tag == .string_ {
+        fmt.sbprintf(&output, "  DString t%d;\n", counter.index)
+        fmt.sbprintf(&output, "  ds_init(&t%d);\n", counter.index)
+        fmt.sbprintf(&output, "  ds_append_cstr(&t%d, ", counter.index)
+        emit_c_escaped_string(&output, l.token.str)
+        fmt.sbprintf(&output, ");\n")
+      } else {
+        fmt.sbprintf(&output, "  const char *t%d = ", counter.index)
+        emit_c_escaped_string(&output, l.token.str)
+        fmt.sbprintf(&output, ";\n")
+      }
       counter.index += 1
     }
-    counter.type_tag = .ptr
-    last_value_tag = .ptr
+    if counter.type_tag == .string_ {
+      counter.type_tag = .string_
+      last_value_tag = .string_
+    } else {
+      counter.type_tag = .ptr
+      last_value_tag = .ptr
+    }
     last_value_custom = ""
     has_last_value_type = true
 

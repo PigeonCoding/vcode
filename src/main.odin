@@ -7,6 +7,20 @@ import build_odin "../libs/build_odin"
 import flag "../libs/flags"
 import lex "../libs/lexer"
 
+normalize_slashes :: proc(s: string) -> string {
+  b: strings.Builder
+  strings.builder_init(&b)
+  for i := 0; i < len(s); i += 1 {
+    ch := s[i]
+    if ch == '\\' {
+      fmt.sbprintf(&b, "/")
+    } else {
+      fmt.sbprintf(&b, "%c", ch)
+    }
+  }
+  return strings.to_string(b)
+}
+
 usage :: proc(program: string, cont: ^flag.flag_container) {
   fmt.eprintfln("Usage: %s [OPTIONS] file.vc", program)
   fmt.eprintln("OPTIONS:")
@@ -105,8 +119,6 @@ main :: proc() {
 
   l := lex.init_lexer(file)
 
-  fmt.sbprintf(&output, "#include <stdbool.h>\n#include <stdint.h>\n#include <stdio.h>\n\n")
-
   if !silent {
     fmt.println("prepass")
   }
@@ -129,7 +141,17 @@ main :: proc() {
   }
 
   fmt.sbprintf(&output, "\n  return 0;\n}\n")
-  out_str := strings.to_string(output)
+
+  final_output: strings.Builder
+  strings.builder_init(&final_output)
+  fmt.sbprintf(&final_output, "#include <stdbool.h>\n#include <stdint.h>\n#include <stdio.h>\n")
+  if uses_dstring {
+    p, _ := os.get_executable_directory(context.allocator)
+    libs_path := normalize_slashes(strings.concatenate({p, "/std/dstring.h"}))
+    fmt.sbprintf(&final_output, "#define DSTRING_IMPLEMENTATION\n#include \"%s\"\n", libs_path)
+  }
+  fmt.sbprintf(&final_output, "\n%s", strings.to_string(output))
+  out_str := strings.to_string(final_output)
   
   out_path := strings.concatenate({outb, ".c"})
   if err := os.write_entire_file(out_path, out_str); err != nil {
