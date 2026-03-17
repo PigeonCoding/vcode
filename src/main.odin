@@ -138,22 +138,23 @@ main :: proc() {
   }
   defer { _ = os.remove(out_path) }
   if !silent {
-    fmt.printf("wrote generated C to %s\n", out_path)
+    fmt.printf("generated C code \n")
   }
 
   compiler, ok := resolve_compiler(compiler_override)
   if !ok {
     if compiler_override != "" {
-      fmt.eprintfln("compiler not found or failed to run: %s", compiler_override)
+      fmt.eprintfln("compiler not found or failed to run: '%s'", compiler_override)
     } else {
       fmt.eprintln("no C compiler found in PATH (tried gcc then clang)")
     }
-    return
+    os.exit(1)
   }
 
   if !silent {
     fmt.printf("compiling %s -> %s\n", out_path, outb)
   }
+  
   if !run_command_sync([]string{compiler, out_path, "-o", outb}) {
     fmt.eprintln("C compilation failed")
     return

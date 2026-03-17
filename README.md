@@ -2,7 +2,7 @@
 
 ## Requirements
 - `odin`
-- `gcc` or `clang` in yout path
+- `gcc` or `clang` in your path (alternatively set the -cc flags ex: ./vcode -cc /your/path/compiler )
 
 ## How to build
 ```console
