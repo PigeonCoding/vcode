@@ -58,13 +58,40 @@ command_works :: proc(cmd: string) -> bool {
   return run_process_sync([]string{"sh", "-c", strings.concatenate({cmd, " --version >/dev/null 2>&1"})})
 }
 
+command_works_msvc :: proc(cmd: string) -> bool {
+  if ODIN_OS != .Windows {
+    return false
+  }
+  return run_process_sync([]string{"cmd", "/C", strings.concatenate({cmd, " /? >NUL 2>&1"})})
+}
+
+is_msvc_compiler :: proc(name: string) -> bool {
+  if name == "cl" || name == "cl.exe" {
+    return true
+  }
+  if strings.has_suffix(name, "\\cl.exe") || strings.has_suffix(name, "/cl.exe") {
+    return true
+  }
+  if strings.has_suffix(name, "\\cl") || strings.has_suffix(name, "/cl") {
+    return true
+  }
+  return false
+}
+
 resolve_compiler :: proc(override: string) -> (string, bool) {
   if override != "" {
+    if ODIN_OS == .Windows && is_msvc_compiler(override) {
+      if command_works_msvc(override) do return override, true
+      return "", false
+    }
     if command_works(override) do return override, true
     return "", false
   }
   if command_works("gcc") do return "gcc", true
   if command_works("clang") do return "clang", true
+  if ODIN_OS == .Windows {
+    if command_works_msvc("cl") do return "cl", true
+  }
   return "", false
 }
 
@@ -168,7 +195,11 @@ main :: proc() {
     if compiler_override != "" {
       fmt.eprintfln("compiler not found or failed to run: '%s'", compiler_override)
     } else {
-      fmt.eprintln("no C compiler found in PATH (tried gcc then clang)")
+      if ODIN_OS == .Windows {
+        fmt.eprintln("no C compiler found in PATH (tried gcc, clang, then cl)")
+      } else {
+        fmt.eprintln("no C compiler found in PATH (tried gcc then clang)")
+      }
     }
     os.exit(1)
   }
@@ -177,7 +208,13 @@ main :: proc() {
     fmt.printf("compiling %s -> %s\n", out_path, outb)
   }
   
-  if !run_command_sync([]string{compiler, out_path, "-o", outb}) {
+  compile_cmd: []string
+  if is_msvc_compiler(compiler) {
+    compile_cmd = []string{compiler, "/nologo", out_path, strings.concatenate({"/Fe:", outb})}
+  } else {
+    compile_cmd = []string{compiler, out_path, "-o", outb}
+  }
+  if !run_command_sync(compile_cmd) {
     fmt.eprintln("C compilation failed")
     return
   }
