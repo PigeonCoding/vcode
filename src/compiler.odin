@@ -49,6 +49,9 @@ has_last_value_type : bool
 fn_cursor_map   : map[int]string
 fn_typedefs     : map[string]string
 fn_var_typedefs : map[string]string
+fn_arg_types    : map[string][]VarType
+fn_ret_types    : map[string]VarType
+fn_typedef_ret  : map[string]VarType
 
 last_fn_typedef     : string
 has_last_fn_typedef : bool
@@ -62,6 +65,9 @@ init_compiler :: proc() {
   fn_cursor_map = make(map[int]string)
   fn_typedefs = make(map[string]string)
   fn_var_typedefs = make(map[string]string)
+  fn_arg_types = make(map[string][]VarType)
+  fn_ret_types = make(map[string]VarType)
+  fn_typedef_ret = make(map[string]VarType)
   strings.builder_init(&output)
   strings.builder_init(&typedef_output)
   counter = Counter{}
@@ -214,7 +220,7 @@ get_punct :: proc(l: ^lex.lexer) -> VC_Puncts {
   return .none
 }
 
-parse_fn_decl_args :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
+parse_fn_decl_args :: proc(l: ^lex.lexer, out: ^strings.Builder, arg_types: ^[dynamic]VarType) -> bool {
   if !lex.get_token(l) do return true
   fmt.sbprintf(out, "(")
   for !(l.token.type == .punct && byte(l.token.intlit) == ')') {
@@ -265,6 +271,7 @@ parse_fn_decl_args :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
     }
 
     fmt.sbprintf(out, "%s %s", arg_type, arg_name)
+    append(arg_types, vtype)
     var_types[arg_name] = vtype
     if vtype.tag == .custom {
       fn_var_typedefs[arg_name] = arg_type
@@ -432,36 +439,46 @@ fn_pass :: proc(l: ^lex.lexer) -> bool {
 
     args_builder: strings.Builder
     strings.builder_init(&args_builder)
-    if parse_fn_decl_args(l, &args_builder) {
+    arg_types: [dynamic]VarType
+    if parse_fn_decl_args(l, &args_builder, &arg_types) {
       return true
     }
     args_sig := strings.to_string(args_builder)
+    fn_arg_types[fn_name] = arg_types[:]
 
+    ret_type := ""
+    ret_vtype := VarType{.invalid, ""}
+    has_body_token := false
     if !lex.get_token(l) do return true
-    if l.token.type != .punct || byte(l.token.intlit) != ':' {
+    if l.token.type == .punct && byte(l.token.intlit) == ':' {
+      if !lex.get_token(l) do return true
+      if l.token.type != .id {
+        fmt.eprintfln("%s:%d:%d expected return type", l.token.file, l.token.row, l.token.col)
+        return true
+      }
+
+      rt, vtype, ok := resolve_decl_type(l)
+      if !ok {
+        fmt.eprintfln(
+          "%s:%d:%d unknown return type (%s)",
+          l.token.file,
+          l.token.row,
+          l.token.col,
+          l.token.str,
+        )
+        return true
+      }
+      ret_type = rt
+      ret_vtype = vtype
+    } else if l.token.type == .punct && byte(l.token.intlit) == '{' {
+      ret_type = "void"
+      has_body_token = true
+    } else {
       fmt.eprintfln(
-        "%s:%d:%d expected ':' after function arguments",
+        "%s:%d:%d expected ':' or '{' after function arguments",
         l.token.file,
         l.token.row,
         l.token.col,
-      )
-      return true
-    }
-
-    if !lex.get_token(l) do return true
-    if l.token.type != .id {
-      fmt.eprintfln("%s:%d:%d expected return type", l.token.file, l.token.row, l.token.col)
-      return true
-    }
-
-    ret_type, _, ok := resolve_decl_type(l)
-    if !ok {
-      fmt.eprintfln(
-        "%s:%d:%d unknown return type (%s)",
-        l.token.file,
-        l.token.row,
-        l.token.col,
-        l.token.str,
       )
       return true
     }
@@ -471,15 +488,22 @@ fn_pass :: proc(l: ^lex.lexer) -> bool {
 
     fn_typedef := fmt.tprintf("%s_t", fn_name)
     fn_typedefs[fn_name] = fn_typedef
+    fn_ret_types[fn_name] = ret_vtype
+    fn_typedef_ret[fn_typedef] = ret_vtype
     emit_source_line(&typedef_output, l)
     fmt.sbprintf(&typedef_output, "typedef %s (*%s)%s;\n", ret_type, fn_typedef, args_sig)
 
-    if !lex.get_token(l) do return true
+    if !has_body_token {
+      if !lex.get_token(l) do return true
+    }
     if main_pass(l, false) {
       return true
     }
 
-    fmt.sbprintf(&output, "  return 0;\n}}\n\n")
+    if ret_type != "void" {
+      fmt.sbprintf(&output, "  return 0;\n")
+    }
+    fmt.sbprintf(&output, "}}\n\n")
     case .none:
     case .let:
     case .while:
@@ -586,7 +610,11 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
       }
 
       if !skip && has_last_lvalue {
-        fmt.sbprintf(&output, "  %s = t%d;\n", last_lvalue, counter.index - 1)
+        rhs_expr := fmt.tprintf("t%d", counter.index - 1)
+        if last_lvalue_tag == .ptr && last_value_tag == .string_ {
+          rhs_expr = fmt.tprintf("ds_c_str(&t%d)", counter.index - 1)
+        }
+        fmt.sbprintf(&output, "  %s = %s;\n", last_lvalue, rhs_expr)
       }
 
     case .add:
@@ -964,7 +992,11 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
           emit_source_line(&output, l)
           emit_var_decl_default(&output, final_decl_type, var_name, final_decl_tag, final_decl_tag == .custom)
           emit_source_line(&output, l)
-          fmt.sbprintf(&output, "  %s = t%d;\n", var_name, counter.index - 1)
+          rhs_expr := fmt.tprintf("t%d", counter.index - 1)
+          if final_decl_tag == .ptr && last_value_tag == .string_ {
+            rhs_expr = fmt.tprintf("ds_c_str(&t%d)", counter.index - 1)
+          }
+          fmt.sbprintf(&output, "  %s = %s;\n", var_name, rhs_expr)
         }
         if inferred_decl_type != "" {
           fn_var_typedefs[var_name] = inferred_decl_type
@@ -1116,6 +1148,14 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
         arg_count := 0
         var_typedef, has_var_typedef := fn_var_typedefs[temp]
         _, call_via_var := var_types[temp]
+        expected_args, has_expected_args := fn_arg_types[temp]
+        ret_vtype, has_ret := fn_ret_types[temp]
+        if call_via_var && has_var_typedef {
+          if tv, ok := fn_typedef_ret[var_typedef]; ok {
+            ret_vtype = tv
+            has_ret = true
+          }
+        }
 
         if lex.get_token(l) && l.token.type == .punct && byte(l.token.intlit) == '(' {
           peek2 := l^
@@ -1126,6 +1166,12 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
               if l.token.type == .punct && byte(l.token.intlit) == ')' {
                 quit = true
               }
+              if has_expected_args && arg_count < len(expected_args) {
+                expected := expected_args[arg_count]
+                if expected.tag != .custom {
+                  counter.type_tag = expected.tag
+                }
+              }
               if main_pass(l, false) {
                 return true
               }
@@ -1135,7 +1181,14 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
                   if arg_count > 0 {
                     fmt.sbprintf(&args_builder, ", ")
                   }
-                  fmt.sbprintf(&args_builder, "t%d", counter.index - 1)
+                  arg_expr := fmt.tprintf("t%d", counter.index - 1)
+                  if has_expected_args && arg_count < len(expected_args) {
+                    expected := expected_args[arg_count]
+                    if expected.tag == .ptr && last_value_tag == .string_ {
+                      arg_expr = fmt.tprintf("ds_c_str(&t%d)", counter.index - 1)
+                    }
+                  }
+                  fmt.sbprintf(&args_builder, "%s", arg_expr)
                   arg_count += 1
                 }
               }
@@ -1145,7 +1198,15 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
 
         if !skip {
           if call_via_var && has_var_typedef {
-            fmt.sbprintf(&output, "  int64_t t%d = %s(", counter.index, temp)
+            if has_ret && ret_vtype.tag == .invalid {
+              fmt.sbprintf(&output, "  %s(", temp)
+            } else if has_ret && ret_vtype.tag == .custom {
+              fmt.sbprintf(&output, "  %s t%d = %s(", ret_vtype.custom, counter.index, temp)
+            } else if has_ret && ret_vtype.tag != .invalid {
+              fmt.sbprintf(&output, "  %s t%d = %s(", type_tag_to_c(ret_vtype.tag), counter.index, temp)
+            } else {
+              fmt.sbprintf(&output, "  int64_t t%d = %s(", counter.index, temp)
+            }
           } else if call_via_var {
             fmt.sbprintf(
               &output,
@@ -1153,13 +1214,33 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
               counter.index,
               temp,
             )
+          } else if has_ret && ret_vtype.tag == .custom {
+            fmt.sbprintf(&output, "  %s t%d = %s(", ret_vtype.custom, counter.index, temp)
+          } else if has_ret && ret_vtype.tag != .invalid {
+            fmt.sbprintf(&output, "  %s t%d = %s(", type_tag_to_c(ret_vtype.tag), counter.index, temp)
+          } else if has_ret && ret_vtype.tag == .invalid {
+            fmt.sbprintf(&output, "  %s(", temp)
           } else {
             fmt.sbprintf(&output, "  int64_t t%d = %s(", counter.index, temp)
           }
           fmt.sbprintf(&output, "%s", strings.to_string(args_builder))
           fmt.sbprintf(&output, ");\n")
         }
+        if has_ret && ret_vtype.tag == .invalid {
+          counter.type_tag = .invalid
+          last_value_tag = .invalid
+          last_value_custom = ""
+          has_last_value_type = false
+          return false
+        }
         counter.index += 1
+        if has_ret {
+          counter.type_tag = ret_vtype.tag
+          last_value_tag = ret_vtype.tag
+          last_value_custom = ret_vtype.custom
+          has_last_value_type = true
+          return false
+        }
         counter.type_tag = .i64
         last_value_tag = .i64
         last_value_custom = ""

@@ -12,3 +12,11 @@ z();
 y();
 
 test2(69);
+
+let s: string = "hi\n";
+
+fn t(x: cstring) {
+  printf(x);
+}
+
+t(s);

@@ -72,6 +72,8 @@ resolve_decl_type :: proc(l: ^lex.lexer) -> (string, VarType, bool) {
     return "int16_t", VarType{.i16, ""}, true
   case "bool":
     return "bool", VarType{.bool, ""}, true
+  case "cstring":
+    return "const char *", VarType{.ptr, ""}, true
   case "string":
     uses_dstring = true
     return "DString", VarType{.string_, ""}, true
@@ -147,6 +149,7 @@ type_is_assignable :: proc(
     if lhs_custom == "" || rhs_custom == "" do return false
     return lhs_custom == rhs_custom
   }
+  if lhs_tag == .ptr && rhs_tag == .string_ do return true
   if lhs_tag == .string_ || rhs_tag == .string_ do return lhs_tag == rhs_tag
   if lhs_tag == .bool || rhs_tag == .bool do return lhs_tag == rhs_tag
   if lhs_tag == .ptr || rhs_tag == .ptr do return lhs_tag == rhs_tag

@@ -15,3 +15,4 @@ let v_bool_true: bool = true;
 let v_bool_false: bool = false;
 
 let str: string = "hello";
+let cstr: cstring = "hello";
