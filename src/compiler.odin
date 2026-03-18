@@ -78,6 +78,8 @@ emit_c_escaped_string :: proc(out: ^strings.Builder, s: string) {
   fmt.sbprintf(out, "\"")
   for b in s {
     switch b {
+    case '\\':
+      fmt.sbprintf(out, "\\\\")
     case '"':
       fmt.sbprintf(out, "\\\"")
     case '\n':
