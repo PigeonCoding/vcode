@@ -1,0 +1,4 @@
+
+fn foo(x: cstring) {
+  printf("foo %s\n", x);
+}

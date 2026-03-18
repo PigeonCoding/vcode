@@ -16,6 +16,7 @@ examples :: []string{
   "struct",
   "types",
   "functions",
+  "include"
 }
 
 build_compiler :: proc() -> bool {

@@ -102,6 +102,7 @@ init_lexer :: proc(file: string) -> lexer {
     fmt.eprintfln("could not open file %s, because {}", file, err)
   }
   str, _ = strings.replace_all(str, "\r\n", "\n")
+  str = expand_includes(file, str, 0)
   l.content, _ = string_to_u8(&str).?
   if len(l.content) == 0 {
     fmt.println("file", file, "is empty")
@@ -110,6 +111,100 @@ init_lexer :: proc(file: string) -> lexer {
   delete(str)
 
   return l
+}
+
+is_path_sep :: proc(c: byte) -> bool {
+  return c == '/' || c == '\\'
+}
+
+is_abs_path :: proc(p: string) -> bool {
+  if len(p) == 0 do return false
+  if is_path_sep(p[0]) do return true
+  if len(p) >= 2 && p[1] == ':' do return true
+  return false
+}
+
+path_dir :: proc(p: string) -> string {
+  if len(p) == 0 do return ""
+  for i := int(len(p)) - 1; i >= 0; i -= 1 {
+    if is_path_sep(p[auto_cast i]) {
+      if i == 0 do return string(p[:1])
+      return string(p[:i])
+    }
+  }
+  return ""
+}
+
+join_path :: proc(dir: string, rel: string) -> string {
+  if dir == "" do return rel
+  if len(dir) == 0 do return rel
+  if is_path_sep(dir[len(dir) - 1]) {
+    return strings.concatenate({dir, rel})
+  }
+  return strings.concatenate({dir, "/", rel})
+}
+
+parse_include_line :: proc(line: string) -> (path: string, ok: bool) {
+  i := 0
+  for i < len(line) && (line[i] == ' ' || line[i] == '\t') do i += 1
+  if i + 8 > len(line) do return "", false
+  if line[i] != '$' do return "", false
+  if string(line[i:i+8]) != "$include" do return "", false
+  i += 8
+  for i < len(line) && (line[i] == ' ' || line[i] == '\t') do i += 1
+  if i >= len(line) || line[i] != '"' do return "", false
+  i += 1
+  start := i
+  for i < len(line) && line[i] != '"' do i += 1
+  if i >= len(line) do return "", false
+  return string(line[start:i]), true
+}
+
+expand_includes :: proc(file: string, content: string, depth: int) -> string {
+  if depth > 32 {
+    fmt.eprintfln("include depth exceeded while processing %s", file)
+    os.exit(1)
+  }
+
+  dir := path_dir(file)
+  b: strings.Builder
+  strings.builder_init(&b)
+
+  line_start := 0
+  i := 0
+  for i <= len(content) {
+    if i == len(content) || content[i] == '\n' {
+      line := string(content[line_start:i])
+      inc_path, ok := parse_include_line(line)
+      if ok {
+        full := inc_path
+        if !is_abs_path(inc_path) {
+          full = join_path(dir, inc_path)
+        }
+        inc_str, err := read_file(full)
+        if err != nil {
+          fmt.eprintfln("could not open include file %s, because {}", full, err)
+          os.exit(1)
+        }
+        inc_str, _ = strings.replace_all(inc_str, "\r\n", "\n")
+        inc_str = expand_includes(full, inc_str, depth + 1)
+        fmt.sbprintf(&b, "%s", inc_str)
+        if len(inc_str) == 0 || inc_str[len(inc_str) - 1] != '\n' {
+          fmt.sbprintf(&b, "\n")
+        }
+        delete(inc_str)
+      } else {
+        fmt.sbprintf(&b, "%s", line)
+        if i < len(content) {
+          fmt.sbprintf(&b, "\n")
+        }
+      }
+      line_start = i + 1
+    }
+    i += 1
+  }
+
+  return strings.to_string(b)
 }
 
 get_token :: proc(l: ^lexer) -> bool {
