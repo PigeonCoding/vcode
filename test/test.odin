@@ -34,7 +34,7 @@ build_compiler :: proc() -> bool {
   b.directory = "src"
 
   cmd := odin_builder.build_cmd(&b)
-  if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
+  if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; ok {
     fmt.eprintln(err)
     return false
   }
@@ -46,7 +46,7 @@ compile_example :: proc(ex: string) -> bool {
   out_path := fmt.tprintf("build/%s", ex)
   in_file := fmt.tprintf("%s/%s.vc", EXMP_FOLDER, ex)
   cmd := []string{"./vcode", in_file, "-o", out_path}
-  if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; !ok {
+  if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; ok {
     fmt.eprintln(err)
     return false
   }

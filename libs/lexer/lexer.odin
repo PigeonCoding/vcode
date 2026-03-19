@@ -73,6 +73,44 @@ token :: struct {
   col:      uint,
 }
 
+decode_escapes :: proc(raw: string, file: string, row: uint, col: uint) -> (string, bool) {
+  out: [dynamic]u8
+  i := 0
+  for i < len(raw) {
+    ch := raw[i]
+    if ch != '\\' {
+      append(&out, ch)
+      i += 1
+      continue
+    }
+    if i + 1 >= len(raw) {
+      fmt.eprintfln("%s:%d:%d invalid trailing escape in string literal", file, row, col)
+      return "", false
+    }
+
+    esc := raw[i + 1]
+    switch esc {
+    case 'n':
+      append(&out, '\n')
+    case 'r':
+      append(&out, '\r')
+    case 't':
+      append(&out, '\t')
+    case '\\':
+      append(&out, '\\')
+    case '\'':
+      append(&out, '\'')
+    case '"':
+      append(&out, '"')
+    case:
+      fmt.eprintfln("%s:%d:%d unknown escape sequence '\\%c'", file, row, col, esc)
+      return "", false
+    }
+    i += 2
+  }
+  return string(out[:]), true
+}
+
 string_to_u8 :: proc(s: ^string) -> Maybe([]u8) {
   return slice.from_ptr(cast(^u8)strings.clone_to_cstring(s^), len(s))
 }
@@ -312,13 +350,23 @@ get_token :: proc(l: ^lexer) -> bool {
       if l.content[l.cursor] == '\\' do l.cursor += 1
       l.cursor += 1
     }
+    if l.cursor >= len(l.content) {
+      fmt.eprintfln("%s:%d:%d unterminated single-quoted literal", l.file, l.token.row, l.token.col)
+      os.exit(1)
+    }
     l.col += l.cursor - s + 2
 
-    if l.cursor - s == 1 {
-      l.token.intlit = auto_cast l.content[s]
+    raw := string(l.content[s:l.cursor])
+    decoded, ok := decode_escapes(raw, l.file, l.token.row, l.token.col)
+    if !ok {
+      os.exit(1)
+    }
+
+    if len(decoded) == 1 {
+      l.token.intlit = auto_cast decoded[0]
       l.token.type = .charlit
     } else {
-      l.token.str = string(l.content[s:l.cursor])
+      l.token.str = decoded
     }
     l.cursor += 1
   } else if l.content[l.cursor] == '"' {
@@ -333,8 +381,17 @@ get_token :: proc(l: ^lexer) -> bool {
       if l.content[l.cursor] == '\\' do l.cursor += 1
       l.cursor += 1
     }
+    if l.cursor >= len(l.content) {
+      fmt.eprintfln("%s:%d:%d unterminated double-quoted literal", l.file, l.token.row, l.token.col)
+      os.exit(1)
+    }
     l.col += l.cursor - s + 2
-    l.token.str = string(l.content[s:l.cursor])
+    raw := string(l.content[s:l.cursor])
+    decoded, ok := decode_escapes(raw, l.file, l.token.row, l.token.col)
+    if !ok {
+      os.exit(1)
+    }
+    l.token.str = decoded
     l.cursor += 1
   } else if b, ok := (peek_at_index(l.content, l.cursor + 1)).?; ok == true {
     if l.content[l.cursor] == '=' && b == '=' {

@@ -28,8 +28,8 @@ usage :: proc(program: string, cont: ^flag.flag_container) {
 }
 
 run_command_sync :: proc(cmd: []string) -> bool {
-  // ok is false when an error occurs
-  if _, ok := build_odin.exec_and_run_sync(cmd).?; !ok {
+  // ok is true when an error value is present
+  if _, ok := build_odin.exec_and_run_sync(cmd).?; ok {
     return false
   }
   return true

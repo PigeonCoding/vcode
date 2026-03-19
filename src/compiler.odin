@@ -558,6 +558,31 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
       has_last_value_type = true
       counter.type_tag = t
     }
+  case .charlit:
+    if !skip {
+      t := TypeTag.i64
+      if counter.type_tag == .i32 ||
+         counter.type_tag == .i64 ||
+         counter.type_tag == .u8 ||
+         counter.type_tag == .u16 ||
+         counter.type_tag == .i8 ||
+         counter.type_tag == .i16 ||
+         counter.type_tag == .bool {
+        t = counter.type_tag
+      }
+      fmt.sbprintf(
+        &output,
+        "  %s t%d = %d;\n",
+        type_tag_to_c(t),
+        counter.index,
+        l.token.intlit,
+      )
+      counter.index += 1
+      last_value_tag = t
+      last_value_custom = ""
+      has_last_value_type = true
+      counter.type_tag = t
+    }
   case .floatlit:
     if !skip {
       t := TypeTag.f64
@@ -1402,7 +1427,6 @@ main_pass :: proc(l: ^lex.lexer, skip: bool) -> bool {
   case .either_end_or_failure:
     return true
   case .none:
-  case .charlit:
   case .sqstring:
   case .notq:
   case .lesseq:

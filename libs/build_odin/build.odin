@@ -20,10 +20,8 @@ exec_and_run_sync :: proc(cmd: []string) -> Maybe(os.Error) {
   p, err := os.process_start(procc)
   if err != nil do return err
   ps, err2 := os.process_wait(p)
-  if err2 != nil do return err
+  if err2 != nil do return err2
   if ps.exit_code != 0 do return os.General_Error.None
-  err = os.process_terminate(p)
-  if err != nil do return err
 
   return nil
 
