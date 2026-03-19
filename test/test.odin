@@ -7,6 +7,8 @@ import "core:strings"
 
 EXMP_FOLDER :: "examples"
 
+COMPILER_OVERRIDE :: "" // empty to let auto detect
+
 examples :: []string{
   "hello",
   "if",
@@ -45,7 +47,8 @@ compile_example :: proc(ex: string) -> bool {
   base := strings.trim_suffix(ex, ".vc")
   out_path := fmt.tprintf("build/%s", ex)
   in_file := fmt.tprintf("%s/%s.vc", EXMP_FOLDER, ex)
-  cmd := []string{"./vcode", in_file, "-o", out_path}
+
+  cmd := []string{"./vcode", in_file, "-o", out_path, "-cc", COMPILER_OVERRIDE}
   if err, ok := odin_builder.exec_and_run_sync(cmd[:]).?; ok {
     fmt.eprintln(err)
     return false

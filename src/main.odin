@@ -40,7 +40,7 @@ main :: proc() {
     outb = (cast(^string)v)^
   }
   compiler_override := ""
-  if v := flag.get_flag_value(&cont, "cc"); v != nil {
+  if v := flag.get_flag_value(&cont, "cc"); v != nil && (cast(^string)v)^ != "" {
     compiler_override = (cast(^string)v)^
   }
 
