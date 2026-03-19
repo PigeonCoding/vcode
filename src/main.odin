@@ -1,98 +1,15 @@
-package main
+package vcode
 
 import "core:fmt"
 import "core:os"
 import "core:strings"
-import build_odin "../libs/build_odin"
 import flag "../libs/flags"
 import lex "../libs/lexer"
-
-normalize_slashes :: proc(s: string) -> string {
-  b: strings.Builder
-  strings.builder_init(&b)
-  for i := 0; i < len(s); i += 1 {
-    ch := s[i]
-    if ch == '\\' {
-      fmt.sbprintf(&b, "/")
-    } else {
-      fmt.sbprintf(&b, "%c", ch)
-    }
-  }
-  return strings.to_string(b)
-}
 
 usage :: proc(program: string, cont: ^flag.flag_container) {
   fmt.eprintfln("Usage: %s [OPTIONS] file.vc", program)
   fmt.eprintln("OPTIONS:")
   flag.print_usage(cont)
-}
-
-run_command_sync :: proc(cmd: []string) -> bool {
-  // ok is true when an error value is present
-  if _, ok := build_odin.exec_and_run_sync(cmd).?; ok {
-    return false
-  }
-  return true
-}
-
-run_process_sync :: proc(cmd: []string) -> bool {
-  procc: os.Process_Desc
-  procc.stderr = os.stderr
-  procc.stdout = os.stdout
-  procc.env = nil
-  procc.working_dir = ""
-
-  procc.command = cmd
-  p, err := os.process_start(procc)
-  if err != nil do return false
-  ps, err2 := os.process_wait(p)
-  if err2 != nil do return false
-  if ps.exit_code != 0 do return false
-  return true
-}
-
-command_works :: proc(cmd: string) -> bool {
-  if ODIN_OS == .Windows {
-    return run_process_sync([]string{"cmd", "/C", strings.concatenate({cmd, " --version >NUL 2>&1"})})
-  }
-  return run_process_sync([]string{"sh", "-c", strings.concatenate({cmd, " --version >/dev/null 2>&1"})})
-}
-
-command_works_msvc :: proc(cmd: string) -> bool {
-  if ODIN_OS != .Windows {
-    return false
-  }
-  return run_process_sync([]string{"cmd", "/C", strings.concatenate({cmd, " /? >NUL 2>&1"})})
-}
-
-is_msvc_compiler :: proc(name: string) -> bool {
-  if name == "cl" || name == "cl.exe" {
-    return true
-  }
-  if strings.has_suffix(name, "\\cl.exe") || strings.has_suffix(name, "/cl.exe") {
-    return true
-  }
-  if strings.has_suffix(name, "\\cl") || strings.has_suffix(name, "/cl") {
-    return true
-  }
-  return false
-}
-
-resolve_compiler :: proc(override: string) -> (string, bool) {
-  if override != "" {
-    if ODIN_OS == .Windows && is_msvc_compiler(override) {
-      if command_works_msvc(override) do return override, true
-      return "", false
-    }
-    if command_works(override) do return override, true
-    return "", false
-  }
-  if command_works("gcc") do return "gcc", true
-  if command_works("clang") do return "clang", true
-  if ODIN_OS == .Windows {
-    if command_works_msvc("cl") do return "cl", true
-  }
-  return "", false
 }
 
 main :: proc() {
@@ -105,7 +22,7 @@ main :: proc() {
   flag.add_flag(&cont, "-help", false, "Print this help to stdout and exit with 0")
   flag.add_flag(&cont, "s", false, "silences messages")
   flag.add_flag(&cont, "o", "out", "sets the output file")
-  flag.add_flag(&cont, "cc", "", "sets the compiler path (overrides auto-detect)")
+  flag.add_flag(&cont, "cc", "", "sets the compiler executable (overrides auto-detect)")
 
   flag.check_flags(&cont)
 
