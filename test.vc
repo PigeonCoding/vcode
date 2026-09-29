@@ -1,7 +1,2 @@
 
-struct foo {
-  x: i32,
-  y: i64,
-};
-
-let v: foo;
+a = b + c - x + z

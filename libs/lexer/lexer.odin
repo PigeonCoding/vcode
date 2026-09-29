@@ -1,5 +1,9 @@
 package lexer
-// v0.3.1
+// v0.4.0
+// - v0.4.0 changelog:
+// -- added basic math/single-char ops: plus, minus, mult, div, mod, xor, power,
+//    and, or, tilde, not, less, greater, assign (single-char ops no longer
+//    fall back to punct)
 // - v0.3.1 changelog:
 // -- get_token() now returns a bool to indicate if it reached the EOF
 // - v0.3 changelog:
@@ -52,6 +56,21 @@ token_id :: enum {
   eqarrow,
   shleq,
   shreq,
+  // basic math / single-char ops (v0.4.0, no longer punct fallback)
+  plus,
+  minus,
+  mult,
+  div,
+  mod,
+  xor,
+  power,
+  and,
+  or,
+  tilde,
+  not,
+  less,
+  greater,
+  assign,
 }
 
 lexer :: struct {
@@ -568,6 +587,20 @@ get_token :: proc(l: ^lexer) -> bool {
         l.cursor += 1
       }
       l.cursor += 1
+    } else if l.content[l.cursor] == '*' && b == '*' {
+      l.token.type = .power
+
+      l.token.col = l.col
+      l.token.row = l.row + 1
+
+      l.col += 2
+      l.cursor += 2
+    } else if op, is_op := single_char_op(l.content[l.cursor]).?; is_op {
+      l.token.type = op
+      l.token.col = l.col
+      l.token.row = l.row + 1
+      l.cursor += 1
+      l.col += 1
     } else {
       l.token.intlit = auto_cast l.content[l.cursor]
       l.token.type = .punct
@@ -577,15 +610,55 @@ get_token :: proc(l: ^lexer) -> bool {
       l.col += 1
     }
   } else {
-    l.token.intlit = auto_cast l.content[l.cursor]
-    l.token.type = .punct
-    l.token.col = l.col
-    l.token.row = l.row + 1
-    l.cursor += 1
-    l.col += 1
+    if op, is_op := single_char_op(l.content[l.cursor]).?; is_op {
+      l.token.type = op
+      l.token.col = l.col
+      l.token.row = l.row + 1
+      l.cursor += 1
+      l.col += 1
+    } else {
+      l.token.intlit = auto_cast l.content[l.cursor]
+      l.token.type = .punct
+      l.token.col = l.col
+      l.token.row = l.row + 1
+      l.cursor += 1
+      l.col += 1
+    }
   }
 
   return true
+}
+
+single_char_op :: proc(c: byte) -> Maybe(token_id) {
+  switch c {
+  case '+':
+    return .plus
+  case '-':
+    return .minus
+  case '*':
+    return .mult
+  case '/':
+    return .div
+  case '%':
+    return .mod
+  case '^':
+    return .xor
+  case '&':
+    return .and
+  case '|':
+    return .or
+  case '~':
+    return .tilde
+  case '!':
+    return .not
+  case '<':
+    return .less
+  case '>':
+    return .greater
+  case '=':
+    return .assign
+  }
+  return nil
 }
 
 peek_at_index :: proc(l: []u8, index: uint) -> Maybe(byte) {
