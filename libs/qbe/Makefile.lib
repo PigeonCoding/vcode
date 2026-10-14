@@ -1,0 +1,25 @@
+# Makefile.lib — build the vendored QBE backend as a static library.
+#
+# Usage: make -C libs/qbe -f Makefile.lib libqbe.a
+# (also wired into `odin run ./builder`)
+#
+# This file only *includes* the vendored Makefile to reuse its OBJ lists,
+# so upstream updates to Makefile just work. No vendored file is modified.
+# libqbe.a = all QBE objects except main.o (the CLI driver) + qbe_lib.o
+# (the library shim, see qbe_lib.h). main.c is deliberately excluded:
+# qbe_lib.c owns the `T` / `debug` globals instead.
+
+include Makefile
+
+LIBOBJ = $(filter-out main.o, $(OBJ)) qbe_lib.o
+
+libqbe.a: config.h $(LIBOBJ)
+	$(AR) rcs $@ $(LIBOBJ)
+
+qbe_lib.o: qbe_lib.c qbe_lib.h all.h ops.h config.h
+	$(CC) $(CFLAGS) -c qbe_lib.c -o $@
+
+libclean:
+	rm -f $(LIBOBJ) libqbe.a
+
+.PHONY: libclean

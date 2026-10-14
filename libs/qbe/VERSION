@@ -1,0 +1,25 @@
+QBE backend vendored in libs/qbe
+================================
+Upstream: git://c9x.me/qbe.git
+Pinned tag: v1.3
+Pinned commit: c0818978acec60ebb6167fade60fb7012cbf20ca (2026-05-12, "reduce memory footprint of strings")
+
+How this was vendored:
+  git clone git://c9x.me/qbe.git libs/qbe
+  git -C libs/qbe checkout v1.3
+  rm -rf libs/qbe/.git
+
+To update to a newer upstream release later:
+  rm -rf libs/qbe
+  git clone git://c9x.me/qbe.git libs/qbe
+  git -C libs/qbe checkout <new-tag>
+  rm -rf libs/qbe/.git
+  (then update this file with the new tag + commit)
+
+Local additions (NOT upstream, keep on update):
+  qbe_lib.h / qbe_lib.c — library shim: same pipeline as main.c's driver
+    as a callable API (main.c itself is excluded from the library).
+  Makefile.lib — builds libqbe.a (all QBE objects except main.o, plus
+    qbe_lib.o) by including the vendored Makefile; no vendored file is
+    modified for the library build.
+  qbe.odin — Odin wrapper (foreign import of libqbe.a).
