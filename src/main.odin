@@ -34,22 +34,19 @@ main :: proc() {
 	// init_aster()
 
 	l: lex.lexer
+	sb: strings.Builder
 
 	for file in cont.remaining {
-		// init_aster()
 		lexed: [dynamic]lex.token
-		// tree: ast_tree
 		l = lex.init_lexer(file)
-		
+		l.custom = lexer_custom
 
 		for lex.get_token(&l) {
-			append(&lexed, l.token)
+			if !compile_to_qbe(&l, &sb) do os.exit(1)
 		}
 
-		// fmt.println(lexed[:])
-		// get_asted(lexed[:], &tree)
-		// fmt.println(tree)
-		// print_tree(&tree)
 	}
 
 }
+
+
