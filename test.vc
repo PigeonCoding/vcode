@@ -1,2 +1,9 @@
 
+main :: fn(int argc, char** argv) {
 a = b + c - x + z
+zz = 42
+f = "hello"
+call("sup", "hi")
+return
+}
+

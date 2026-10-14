@@ -31,23 +31,25 @@ main :: proc() {
 		return
 	}
 
-	init_aster()
+	// init_aster()
 
 	l: lex.lexer
 
 	for file in cont.remaining {
-		init_aster()
+		// init_aster()
 		lexed: [dynamic]lex.token
-		tree: ast_tree
+		// tree: ast_tree
 		l = lex.init_lexer(file)
+		
+
 		for lex.get_token(&l) {
 			append(&lexed, l.token)
 		}
 
 		// fmt.println(lexed[:])
-		get_asted(lexed[:], &tree)
-		fmt.println(tree)
-		print_tree(&tree)
+		// get_asted(lexed[:], &tree)
+		// fmt.println(tree)
+		// print_tree(&tree)
 	}
 
 }
