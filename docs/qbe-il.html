@@ -1,150 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QBE IL — Features and Examples (vcode guide)</title>
-<style>
-  :root { color-scheme: light; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-         max-width: 62rem; margin: 0 auto; padding: 1.5rem 1.25rem 4rem;
-         line-height: 1.6; color: #1c1c1c; }
-  h1 { font-size: 1.9rem; margin-bottom: 0.2rem; }
-  h2 { font-size: 1.4rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
-  h3 { font-size: 1.1rem; margin-top: 1.8rem; }
-  .subtitle { color: #555; margin-top: 0; }
-  nav.toc { background: #f6f6f6; border: 1px solid #e2e2e2; border-radius: 8px;
-            padding: 1rem 1.5rem; }
-  nav.toc ol { margin: 0.4rem 0; padding-left: 1.4rem; }
-  nav.toc li { margin: 0.15rem 0; }
-  a { color: #0b5cad; }
-  code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-         background: #f1f1f1; padding: 0.05em 0.3em; border-radius: 4px;
-         font-size: 0.92em; }
-  pre { background: #161616; color: #e8e8e8; padding: 1rem 1.2rem;
-        border-radius: 8px; overflow-x: auto; font-size: 0.88rem;
-        line-height: 1.5; }
-  pre code { background: none; padding: 0; color: inherit; }
-  pre.out { background: #0f2a1d; color: #c9f2d8; }
-  table { border-collapse: collapse; margin: 1rem 0; width: 100%; font-size: 0.93rem; }
-  th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; }
-  th { background: #f0f0f0; }
-  td code { white-space: nowrap; }
-  .verdict { font-size: 0.9rem; color: #2a6b2a; }
-  footer { margin-top: 3rem; color: #666; font-size: 0.9rem;
-           border-top: 1px solid #ddd; padding-top: 1rem; }
-</style>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>QBE IL — Features and Examples (vcode guide)</title>
+	<style>
+		:root {
+			color-scheme: dark;
+		}
+
+		body {
+			font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+			max-width: 62rem;
+			margin: 0 auto;
+			padding: 1.5rem 1.25rem 4rem;
+			line-height: 1.6;
+			color: #e0e0e0;
+			background: #121212;
+		}
+
+		h1 {
+			font-size: 1.9rem;
+			margin-bottom: 0.2rem;
+			color: #f0f0f0;
+		}
+
+		h2 {
+			font-size: 1.4rem;
+			margin-top: 2.5rem;
+			border-bottom: 1px solid #333;
+			padding-bottom: 0.3rem;
+			color: #f0f0f0;
+		}
+
+		h3 {
+			font-size: 1.1rem;
+			margin-top: 1.8rem;
+			color: #e8e8e8;
+		}
+
+		.subtitle {
+			color: #a0a0a0;
+			margin-top: 0;
+		}
+
+		nav.toc {
+			background: #1e1e1e;
+			border: 1px solid #333;
+			border-radius: 8px;
+			padding: 1rem 1.5rem;
+		}
+
+		nav.toc ol {
+			margin: 0.4rem 0;
+			padding-left: 1.4rem;
+		}
+
+		nav.toc li {
+			margin: 0.15rem 0;
+		}
+
+		a {
+			color: #6ab0f3;
+		}
+
+		a:visited {
+			color: #9b8cf0;
+		}
+
+		code {
+			font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+			background: #2a2a2a;
+			padding: 0.05em 0.3em;
+			border-radius: 4px;
+			font-size: 0.92em;
+			color: #f0c674;
+		}
+
+		pre {
+			background: #1a1a1a;
+			color: #e0e0e0;
+			padding: 1rem 1.2rem;
+			border-radius: 8px;
+			overflow-x: auto;
+			font-size: 0.88rem;
+			line-height: 1.5;
+			border: 1px solid #2e2e2e;
+		}
+
+		pre code {
+			background: none;
+			padding: 0;
+			color: inherit;
+		}
+
+		pre.out {
+			background: #0a1f14;
+			color: #b8e6c8;
+			border-color: #1e3a28;
+		}
+
+		pre.out code {
+			color: #b8e6c8;
+		}
+
+		table {
+			border-collapse: collapse;
+			margin: 1rem 0;
+			width: 100%;
+			font-size: 0.93rem;
+		}
+
+		th,
+		td {
+			border: 1px solid #3a3a3a;
+			padding: 0.4rem 0.6rem;
+			text-align: left;
+		}
+
+		th {
+			background: #252525;
+			color: #f0f0f0;
+		}
+
+		td code {
+			white-space: nowrap;
+		}
+
+		.verdict {
+			font-size: 0.9rem;
+			color: #7ec87e;
+		}
+
+		footer {
+			margin-top: 3rem;
+			color: #888;
+			font-size: 0.9rem;
+			border-top: 1px solid #333;
+			padding-top: 1rem;
+		}
+
+		/* subtle scrollbar for dark theme */
+		::-webkit-scrollbar {
+			width: 10px;
+			height: 10px;
+		}
+
+		::-webkit-scrollbar-track {
+			background: #1a1a1a;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background: #3a3a3a;
+			border-radius: 5px;
+		}
+
+		::-webkit-scrollbar-thumb:hover {
+			background: #4a4a4a;
+		}
+	</style>
 </head>
+
 <body>
 
-<h1>QBE IL — Features and Examples</h1>
-<p class="subtitle">A practical guide to the QBE intermediate language for
-vcode's code generator, distilled from the vendored QBE v1.3 sources in
-<code>libs/qbe</code>. Every example below was assembled with the vendored
-QBE and, where shown, linked with <code>cc</code> and executed.</p>
+	<h1>QBE IL — Features and Examples</h1>
+	<p class="subtitle">A practical guide to the QBE intermediate language for
+		vcode's code generator, distilled from the vendored QBE v1.3 sources in
+		<code>libs/qbe</code>. Every example below was assembled with the vendored
+		QBE and, where shown, linked with <code>cc</code> and executed.
+	</p>
 
-<nav class="toc">
-<strong>Contents</strong>
-<ol>
-  <li><a href="#model">Mental model &amp; toolchain</a></li>
-  <li><a href="#lexical">Files, sigils, comments, spacing</a></li>
-  <li><a href="#types">Types &amp; subtyping</a></li>
-  <li><a href="#consts">Constants and vals</a></li>
-  <li><a href="#linkage">Linkage</a></li>
-  <li><a href="#aggtypes">Aggregate types</a></li>
-  <li><a href="#data">Data</a></li>
-  <li><a href="#functions">Functions</a></li>
-  <li><a href="#control">Blocks and jumps</a></li>
-  <li><a href="#instr">Instruction reference</a></li>
-  <li><a href="#phi">Phi — and why you may skip it</a></li>
-  <li><a href="#examples">Examples (all verified)</a></li>
-  <li><a href="#targets">Backends &amp; vcode integration</a></li>
-</ol>
-</nav>
+	<nav class="toc">
+		<strong>Contents</strong>
+		<ol>
+			<li><a href="#model">Mental model &amp; toolchain</a></li>
+			<li><a href="#lexical">Files, sigils, comments, spacing</a></li>
+			<li><a href="#types">Types &amp; subtyping</a></li>
+			<li><a href="#consts">Constants and vals</a></li>
+			<li><a href="#linkage">Linkage</a></li>
+			<li><a href="#aggtypes">Aggregate types</a></li>
+			<li><a href="#data">Data</a></li>
+			<li><a href="#functions">Functions</a></li>
+			<li><a href="#control">Blocks and jumps</a></li>
+			<li><a href="#instr">Instruction reference</a></li>
+			<li><a href="#phi">Phi — and why you may skip it</a></li>
+			<li><a href="#examples">Examples (all verified)</a></li>
+			<li><a href="#targets">Backends &amp; vcode integration</a></li>
+		</ol>
+	</nav>
 
-<p>Sources: <code>libs/qbe/doc/il.txt</code> (authoritative reference, followed
-here), <code>libs/qbe/ops.h</code> (complete op list), <code>libs/qbe/test/*.ssa</code>
-(~70 runnable programs), <code>libs/qbe/doc/abi.txt</code> (struct ABI),
-<code>libs/qbe/minic/</code> (sample C frontend).</p>
+	<p>Sources: <code>libs/qbe/doc/il.txt</code> (authoritative reference, followed
+		here), <code>libs/qbe/ops.h</code> (complete op list), <code>libs/qbe/test/*.ssa</code>
+		(~70 runnable programs), <code>libs/qbe/doc/abi.txt</code> (struct ABI),
+		<code>libs/qbe/minic/</code> (sample C frontend).
+	</p>
 
-<h2 id="model">1. Mental model &amp; toolchain</h2>
-<p>IL is higher-level than machine assembly: it smooths out hardware
-irregularities and offers an <strong>infinite number of temporaries</strong>,
-so the frontend can focus on language design instead of registers. A
-compilation unit is a text file of definitions; QBE turns it into assembly
-for one target (<code>amd64_sysv</code> by default here).</p>
-<pre><code>$ qbe prog.ssa -o prog.s &amp;&amp; cc prog.s -o prog
+	<h2 id="model">1. Mental model &amp; toolchain</h2>
+	<p>IL is higher-level than machine assembly: it smooths out hardware
+		irregularities and offers an <strong>infinite number of temporaries</strong>,
+		so the frontend can focus on language design instead of registers. A
+		compilation unit is a text file of definitions; QBE turns it into assembly
+		for one target (<code>amd64_sysv</code> by default here).</p>
+	<pre><code>$ qbe prog.ssa -o prog.s &amp;&amp; cc prog.s -o prog
 # or from Odin: qbe.compile_file("prog.ssa", "prog.s")</code></pre>
 
-<h2 id="lexical">2. Files, sigils, comments, spacing</h2>
-<ul>
-  <li>A file is a sequence of definitions. Order matters only for
-    <code>type</code>s (define before use); data and functions are mutually
-    recursive, even across files — <strong>no forward declarations needed</strong>.</li>
-  <li>Comments start with <code>#</code> and run to end of line.</li>
-  <li>Tokens are separated by spaces/tabs; newlines also count as spaces inside
-    data and type definitions. Spacing may be omitted next to symbols like
-    <code>,</code>, <code>=</code>, <code>{</code>.</li>
-</ul>
-<table>
-  <tr><th>Sigil</th><th>Meaning</th></tr>
-  <tr><td><code>:</code></td><td>user-defined aggregate type</td></tr>
-  <tr><td><code>$</code></td><td>global (a pointer to it)</td></tr>
-  <tr><td><code>%</code></td><td>function-scope temporary</td></tr>
-  <tr><td><code>@</code></td><td>block label</td></tr>
-</table>
+	<h2 id="lexical">2. Files, sigils, comments, spacing</h2>
+	<ul>
+		<li>A file is a sequence of definitions. Order matters only for
+			<code>type</code>s (define before use); data and functions are mutually
+			recursive, even across files — <strong>no forward declarations needed</strong>.
+		</li>
+		<li>Comments start with <code>#</code> and run to end of line.</li>
+		<li>Tokens are separated by spaces/tabs; newlines also count as spaces inside
+			data and type definitions. Spacing may be omitted next to symbols like
+			<code>,</code>, <code>=</code>, <code>{</code>.
+		</li>
+	</ul>
+	<table>
+		<tr>
+			<th>Sigil</th>
+			<th>Meaning</th>
+		</tr>
+		<tr>
+			<td><code>:</code></td>
+			<td>user-defined aggregate type</td>
+		</tr>
+		<tr>
+			<td><code>$</code></td>
+			<td>global (a pointer to it)</td>
+		</tr>
+		<tr>
+			<td><code>%</code></td>
+			<td>function-scope temporary</td>
+		</tr>
+		<tr>
+			<td><code>@</code></td>
+			<td>block label</td>
+		</tr>
+	</table>
 
-<h2 id="types">3. Types &amp; subtyping</h2>
-<p>Four <strong>base types</strong> — the only types temporaries can have.
-There are <strong>no pointer types</strong>; use an integer wide enough for
-addresses (<code>l</code> on 64-bit).</p>
-<table>
-  <tr><th>Type</th><th>Meaning</th></tr>
-  <tr><td><code>w</code></td><td>word, 32-bit integer</td></tr>
-  <tr><td><code>l</code></td><td>long, 64-bit integer (pointers on 64-bit targets)</td></tr>
-  <tr><td><code>s</code></td><td>single, 32-bit float (IEEE 754)</td></tr>
-  <tr><td><code>d</code></td><td>double, 64-bit float (IEEE 754)</td></tr>
-</table>
-<p>Two <strong>extended types</strong> for data/aggregates: <code>b</code>
-(byte, 8-bit) and <code>h</code> (half word, 16-bit).</p>
-<p><strong>Subtyping (integers only):</strong> an <code>l</code> value may be
-used where a <code>w</code> is expected (low 32 bits) — but <em>not</em> the
-reverse, since <code>w</code>→<code>l</code> is ambiguous (sign vs zero
-extension; use <code>extsw</code>/<code>extuw</code>).</p>
-<pre><code>%x =w sub -1, 0
+	<h2 id="types">3. Types &amp; subtyping</h2>
+	<p>Four <strong>base types</strong> — the only types temporaries can have.
+		There are <strong>no pointer types</strong>; use an integer wide enough for
+		addresses (<code>l</code> on 64-bit).</p>
+	<table>
+		<tr>
+			<th>Type</th>
+			<th>Meaning</th>
+		</tr>
+		<tr>
+			<td><code>w</code></td>
+			<td>word, 32-bit integer</td>
+		</tr>
+		<tr>
+			<td><code>l</code></td>
+			<td>long, 64-bit integer (pointers on 64-bit targets)</td>
+		</tr>
+		<tr>
+			<td><code>s</code></td>
+			<td>single, 32-bit float (IEEE 754)</td>
+		</tr>
+		<tr>
+			<td><code>d</code></td>
+			<td>double, 64-bit float (IEEE 754)</td>
+		</tr>
+	</table>
+	<p>Two <strong>extended types</strong> for data/aggregates: <code>b</code>
+		(byte, 8-bit) and <code>h</code> (half word, 16-bit).</p>
+	<p><strong>Subtyping (integers only):</strong> an <code>l</code> value may be
+		used where a <code>w</code> is expected (low 32 bits) — but <em>not</em> the
+		reverse, since <code>w</code>→<code>l</code> is ambiguous (sign vs zero
+		extension; use <code>extsw</code>/<code>extuw</code>).</p>
+	<pre><code>%x =w sub -1, 0
 %y =w sub 4294967295, 0   # same value: 32-bit context keeps low bits</code></pre>
 
-<h2 id="consts">4. Constants and vals</h2>
-<p>Constants are untyped 64-bit blobs; context decides which bits matter.</p>
-<pre><code>CONST := [-]NUMBER | s_FP | d_FP | $IDENT
+	<h2 id="consts">4. Constants and vals</h2>
+	<p>Constants are untyped 64-bit blobs; context decides which bits matter.</p>
+	<pre><code>CONST := [-]NUMBER | s_FP | d_FP | $IDENT
 VAL   := CONST | %IDENT            # plus thread/extern forms in bodies</code></pre>
-<ul>
-  <li>Integers: decimal, two's complement. Floats: <code>s_</code>/<code>d_</code>
-    + scientific notation (<code>d_0.5</code>, <code>d_-1</code>).</li>
-  <li><code>$sym</code>: a global's address (resolved by the linker).</li>
-  <li>Function bodies only: <code>thread $tls</code> (TLS value),
-    <code>extern $sym</code> (GOT/PLT, for PIE/PIC),
-    <code>extern thread $sym</code> (initial-exec TLS).</li>
-</ul>
+	<ul>
+		<li>Integers: decimal, two's complement. Floats: <code>s_</code>/<code>d_</code>
+			+ scientific notation (<code>d_0.5</code>, <code>d_-1</code>).</li>
+		<li><code>$sym</code>: a global's address (resolved by the linker).</li>
+		<li>Function bodies only: <code>thread $tls</code> (TLS value),
+			<code>extern $sym</code> (GOT/PLT, for PIE/PIC),
+			<code>extern thread $sym</code> (initial-exec TLS).
+		</li>
+	</ul>
 
-<h2 id="linkage">5. Linkage</h2>
-<pre><code>export function w $main() { ... }   # visible to other files / C callers
+	<h2 id="linkage">5. Linkage</h2>
+	<pre><code>export function w $main() { ... }   # visible to other files / C callers
 thread data $i = { w 42 }           # thread-local storage (data only)
 section ".init_array"
 data $.init.f = { l $f }            # custom linker section</code></pre>
-<p><code>export</code> = visible outside the file (required for C-called
-functions). <code>thread</code> (data only) = per-thread copy, accessed via
-<code>thread $i</code>. Zeroed data lands in BSS automatically.</p>
+	<p><code>export</code> = visible outside the file (required for C-called
+		functions). <code>thread</code> (data only) = per-thread copy, accessed via
+		<code>thread $i</code>. Zeroed data lands in BSS automatically.
+	</p>
 
-<h2 id="aggtypes">6. Aggregate types (for C structs)</h2>
-<pre><code>type :fourfloats = { s, s, d, d }
+	<h2 id="aggtypes">6. Aggregate types (for C structs)</h2>
+	<pre><code>type :fourfloats = { s, s, d, d }
 type :abyteandmanywords = { b, w 100 }  # array shorthand; trailing comma OK
 type :cryptovector = align 16 { w 4 }   # explicit alignment (else: max member)
 type :un9 = { { b } { s } }             # union: max size of variants
 type :opaque = align 16 { 32 }          # unknown layout: align + size required</code></pre>
-<p>Aggregates are <strong>not first-class</strong>: passed/returned
-<strong>by pointer</strong>. Load members out explicitly:</p>
-<pre><code>type :one = { w }
+	<p>Aggregates are <strong>not first-class</strong>: passed/returned
+		<strong>by pointer</strong>. Load members out explicitly:
+	</p>
+	<pre><code>type :one = { w }
 
 function w $getone(:one %p) {
 @start
@@ -152,162 +316,290 @@ function w $getone(:one %p) {
 	ret %val
 }</code></pre>
 
-<h2 id="data">7. Data</h2>
-<pre><code>data $a = { w 1 2 3, b 0 }   # three words 1,2,3 then a zero byte
+	<h2 id="data">7. Data</h2>
+	<pre><code>data $a = { w 1 2 3, b 0 }   # three words 1,2,3 then a zero byte
 data $b = { z 1000 }         # 1000 zero bytes (padding / big arrays)
 data $c = { l -1, l $c }     # all-ones long, then a pointer to itself
 data $str = { b "hello world", b 0 }   # strings are byte sequences + NUL</code></pre>
-<p>Fields are packed (the frontend emits padding); a type letter starts a run
-of one or more items of that size; <code>z N</code> is N zero bytes.</p>
+	<p>Fields are packed (the frontend emits padding); a type letter starts a run
+		of one or more items of that size; <code>z N</code> is N zero bytes.</p>
 
-<h2 id="functions">8. Functions</h2>
-<pre><code>function [RETTY] $name(ABITY %arg, ..., [env %e,] [...]) {
+	<h2 id="functions">8. Functions</h2>
+	<pre><code>function [RETTY] $name(ABITY %arg, ..., [env %e,] [...]) {
 	BLOCK+
 }</code></pre>
-<ul>
-  <li>Type before the name = return type; <strong>omitted = returns nothing</strong>.</li>
-  <li><strong>Sub-word params</strong> <code>sb ub sh uh</code> (C
-    <code>char</code>/<code>short</code>): only low N bits set, temporaries
-    are <code>w</code> — extend before use; sub-word <em>returns</em> need no extension.
-<pre><code>function w $addbyte(w %a, sb %b) {
+	<ul>
+		<li>Type before the name = return type; <strong>omitted = returns nothing</strong>.</li>
+		<li><strong>Sub-word params</strong> <code>sb ub sh uh</code> (C
+			<code>char</code>/<code>short</code>): only low N bits set, temporaries
+			are <code>w</code> — extend before use; sub-word <em>returns</em> need no extension.
+			<pre><code>function w $addbyte(w %a, sb %b) {
 @start
 	%bw =w extsb %b
 	%val =w add %a, %bw
 	ret %val
-}</code></pre></li>
-  <li><strong><code>env %e</code></strong> (first param, <code>l</code>): closure
-    environment, invisible to C —
-    <code>export function w $add(env %e, w %a, w %b)</code> is called from C
-    as <code>int add(int, int)</code> (verified below).</li>
-  <li><strong>Variadic</strong>: param list ends with <code>...</code>; extras
-    are read with <code>vastart</code>/<code>vaarg</code>. Callers separate
-    fixed and extra args with <code>...</code>.</li>
-</ul>
+}</code></pre>
+		</li>
+		<li><strong><code>env %e</code></strong> (first param, <code>l</code>): closure
+			environment, invisible to C —
+			<code>export function w $add(env %e, w %a, w %b)</code> is called from C
+			as <code>int add(int, int)</code> (verified below).
+		</li>
+		<li><strong>Variadic</strong>: param list ends with <code>...</code>; extras
+			are read with <code>vastart</code>/<code>vaarg</code>. Callers separate
+			fixed and extra args with <code>...</code>.</li>
+	</ul>
 
-<h2 id="control">9. Blocks and jumps</h2>
-<p>A function is a serialized control-flow graph: label, straight-line code,
-exactly one jump. Two structural rules:</p>
-<ol>
-  <li>The <strong>first block must never be a jump target</strong> (add an
-    empty prelude if you need to jump to the top).</li>
-  <li>A missing jump to the <em>next</em> block is auto-inserted (fall-through).</li>
-</ol>
-<pre><code>JUMP := 'jmp' @dst | 'jnz' VAL, @ifnz, @ifz | 'ret' [VAL] | 'hlt'</code></pre>
-<p><code>jnz</code> tests a <strong>word</strong> (a long works — low 32 bits
-are tested). <code>ret [VAL]</code> must match the return type.
-<code>hlt</code> ends the program (for unreachable code).</p>
+	<h2 id="control">9. Blocks and jumps</h2>
+	<p>A function is a serialized control-flow graph: label, straight-line code,
+		exactly one jump. Two structural rules:</p>
+	<ol>
+		<li>The <strong>first block must never be a jump target</strong> (add an
+			empty prelude if you need to jump to the top).</li>
+		<li>A missing jump to the <em>next</em> block is auto-inserted (fall-through).</li>
+	</ol>
+	<pre><code>JUMP := 'jmp' @dst | 'jnz' VAL, @ifnz, @ifz | 'ret' [VAL] | 'hlt'</code></pre>
+	<p><code>jnz</code> tests a <strong>word</strong> (a long works — low 32 bits
+		are tested). <code>ret [VAL]</code> must match the return type.
+		<code>hlt</code> ends the program (for unreachable code).
+	</p>
 
-<h2 id="instr">10. Instruction reference</h2>
-<p>Three-address code: <code>%r =TYPE op arg1, arg2</code>. Reading type
-strings: <code>T</code>=<code>wlsd</code>, <code>I</code>=<code>wl</code>,
-<code>F</code>=<code>sd</code>, <code>m</code>=pointer-sized int
-(<code>l</code> on 64-bit). <code>X(Y,Z)</code> = return <code>X</code>,
-args <code>Y,Z</code>.</p>
+	<h2 id="instr">10. Instruction reference</h2>
+	<p>Three-address code: <code>%r =TYPE op arg1, arg2</code>. Reading type
+		strings: <code>T</code>=<code>wlsd</code>, <code>I</code>=<code>wl</code>,
+		<code>F</code>=<code>sd</code>, <code>m</code>=pointer-sized int
+		(<code>l</code> on 64-bit). <code>X(Y,Z)</code> = return <code>X</code>,
+		args <code>Y,Z</code>.
+	</p>
 
-<h3>Arithmetic and bits</h3>
-<table>
-  <tr><th>Op</th><th>Type string</th><th>Notes</th></tr>
-  <tr><td><code>add sub mul div</code></td><td><code>T(T,T)</code></td><td>all base types; int <code>div</code> signed, truncates toward 0</td></tr>
-  <tr><td><code>neg</code></td><td><code>T(T)</code></td><td>all base types</td></tr>
-  <tr><td><code>udiv rem urem</code></td><td><code>I(I,I)</code></td><td>unsigned div; remainder takes dividend's sign</td></tr>
-  <tr><td><code>or xor and</code></td><td><code>I(I,I)</code></td><td>bitwise, integer types</td></tr>
-  <tr><td><code>sar shr shl</code></td><td><code>I(I,ww)</code></td><td>amount mod width; <code>sar</code> keeps sign, <code>shr</code>/<code>shl</code> zero-fill</td></tr>
-</table>
+	<h3>Arithmetic and bits</h3>
+	<table>
+		<tr>
+			<th>Op</th>
+			<th>Type string</th>
+			<th>Notes</th>
+		</tr>
+		<tr>
+			<td><code>add sub mul div</code></td>
+			<td><code>T(T,T)</code></td>
+			<td>all base types; int <code>div</code> signed, truncates toward 0</td>
+		</tr>
+		<tr>
+			<td><code>neg</code></td>
+			<td><code>T(T)</code></td>
+			<td>all base types</td>
+		</tr>
+		<tr>
+			<td><code>udiv rem urem</code></td>
+			<td><code>I(I,I)</code></td>
+			<td>unsigned div; remainder takes dividend's sign</td>
+		</tr>
+		<tr>
+			<td><code>or xor and</code></td>
+			<td><code>I(I,I)</code></td>
+			<td>bitwise, integer types</td>
+		</tr>
+		<tr>
+			<td><code>sar shr shl</code></td>
+			<td><code>I(I,ww)</code></td>
+			<td>amount mod width; <code>sar</code> keeps sign, <code>shr</code>/<code>shl</code> zero-fill</td>
+		</tr>
+	</table>
 
-<h3>Memory (pointers are <code>m</code>/<code>l</code> temporaries)</h3>
-<table>
-  <tr><th>Op</th><th>Type string</th><th>Notes</th></tr>
-  <tr><td><code>stored stores storel storew storeh storeb</code></td><td><code>(d/m),(s/m),(l/m),(w/m),(w/m),(w/m)</code></td><td><code>storeh</code>/<code>storeb</code> store low 16/8 bits of a word</td></tr>
-  <tr><td><code>loadd loads loadl</code></td><td><code>d(m),s(m),l(m)</code></td><td></td></tr>
-  <tr><td><code>loadsw loaduw loadsh loaduh loadsb loadub</code></td><td><code>I(mm)</code></td><td>sign/zero-extending, to word <em>or</em> long; <code>loadw</code> = alias of <code>loadsw</code></td></tr>
-  <tr><td><code>blit</code></td><td><code>(m,m,w)</code></td><td>memcopy; count must be a <strong>constant</strong>, spans must not partially overlap</td></tr>
-  <tr><td><code>alloc4 alloc8 alloc16</code></td><td><code>m(l)</code></td><td>stack slot, number = alignment, argument = size in bytes</td></tr>
-</table>
+	<h3>Memory (pointers are <code>m</code>/<code>l</code> temporaries)</h3>
+	<table>
+		<tr>
+			<th>Op</th>
+			<th>Type string</th>
+			<th>Notes</th>
+		</tr>
+		<tr>
+			<td><code>stored stores storel storew storeh storeb</code></td>
+			<td><code>(d/m),(s/m),(l/m),(w/m),(w/m),(w/m)</code></td>
+			<td><code>storeh</code>/<code>storeb</code> store low 16/8 bits of a word</td>
+		</tr>
+		<tr>
+			<td><code>loadd loads loadl</code></td>
+			<td><code>d(m),s(m),l(m)</code></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td><code>loadsw loaduw loadsh loaduh loadsb loadub</code></td>
+			<td><code>I(mm)</code></td>
+			<td>sign/zero-extending, to word <em>or</em> long; <code>loadw</code> = alias of <code>loadsw</code></td>
+		</tr>
+		<tr>
+			<td><code>blit</code></td>
+			<td><code>(m,m,w)</code></td>
+			<td>memcopy; count must be a <strong>constant</strong>, spans must not partially overlap</td>
+		</tr>
+		<tr>
+			<td><code>alloc4 alloc8 alloc16</code></td>
+			<td><code>m(l)</code></td>
+			<td>stack slot, number = alignment, argument = size in bytes</td>
+		</tr>
+	</table>
 
-<h3>Comparisons — the <code>c…</code> scheme</h3>
-<p>Name = <code>c</code> + relation + operand suffix; result is 1/0 as word
-or long. Integer relations:
-<code>eq ne sle slt sge sgt ule ult uge ugt</code>; float:
-<code>eq ne le lt ge gt o uo</code> (<code>o</code> = ordered/no NaN,
-<code>uo</code> = unordered/some NaN).</p>
-<table>
-  <tr><th>Example</th><th>Type string</th><th>Meaning</th></tr>
-  <tr><td><code>csltw</code></td><td><code>I(ww,ww)</code></td><td>signed word <code>&lt;</code></td></tr>
-  <tr><td><code>cultl</code></td><td><code>I(ll,ll)</code></td><td>unsigned long <code>&lt;</code></td></tr>
-  <tr><td><code>ceqw</code> / <code>ceql</code></td><td><code>I(ww,ww)</code> / <code>I(ll,ll)</code></td><td>equality</td></tr>
-  <tr><td><code>cgts</code> / <code>cgtd</code></td><td><code>I(ss,ss)</code> / <code>I(dd,dd)</code></td><td>float <code>&gt;</code></td></tr>
-  <tr><td><code>cod</code> / <code>cos</code></td><td><code>I(dd,dd)</code> / <code>I(ss,ss)</code></td><td>ordered (non-NaN)</td></tr>
-  <tr><td><code>cuod</code> / <code>cuos</code></td><td><code>I(dd,dd)</code> / <code>I(ss,ss)</code></td><td>unordered (some NaN)</td></tr>
-</table>
+	<h3>Comparisons — the <code>c…</code> scheme</h3>
+	<p>Name = <code>c</code> + relation + operand suffix; result is 1/0 as word
+		or long. Integer relations:
+		<code>eq ne sle slt sge sgt ule ult uge ugt</code>; float:
+		<code>eq ne le lt ge gt o uo</code> (<code>o</code> = ordered/no NaN,
+		<code>uo</code> = unordered/some NaN).
+	</p>
+	<table>
+		<tr>
+			<th>Example</th>
+			<th>Type string</th>
+			<th>Meaning</th>
+		</tr>
+		<tr>
+			<td><code>csltw</code></td>
+			<td><code>I(ww,ww)</code></td>
+			<td>signed word <code>&lt;</code></td>
+		</tr>
+		<tr>
+			<td><code>cultl</code></td>
+			<td><code>I(ll,ll)</code></td>
+			<td>unsigned long <code>&lt;</code></td>
+		</tr>
+		<tr>
+			<td><code>ceqw</code> / <code>ceql</code></td>
+			<td><code>I(ww,ww)</code> / <code>I(ll,ll)</code></td>
+			<td>equality</td>
+		</tr>
+		<tr>
+			<td><code>cgts</code> / <code>cgtd</code></td>
+			<td><code>I(ss,ss)</code> / <code>I(dd,dd)</code></td>
+			<td>float <code>&gt;</code></td>
+		</tr>
+		<tr>
+			<td><code>cod</code> / <code>cos</code></td>
+			<td><code>I(dd,dd)</code> / <code>I(ss,ss)</code></td>
+			<td>ordered (non-NaN)</td>
+		</tr>
+		<tr>
+			<td><code>cuod</code> / <code>cuos</code></td>
+			<td><code>I(dd,dd)</code> / <code>I(ss,ss)</code></td>
+			<td>unordered (some NaN)</td>
+		</tr>
+	</table>
 
-<h3>Conversions</h3>
-<table>
-  <tr><th>Op</th><th>Type string</th><th>Meaning</th></tr>
-  <tr><td><code>extsb extub extsh extuh</code></td><td><code>I(ww)</code></td><td>sign/zero-extend 8/16-bit field to word or long</td></tr>
-  <tr><td><code>extsw extuw</code></td><td><code>l(w)</code></td><td>word → long, signed/unsigned</td></tr>
-  <tr><td><code>exts</code> / <code>truncd</code></td><td><code>d(s)</code> / <code>s(d)</code></td><td>float precision up/down</td></tr>
-  <tr><td><code>stosi stoui</code></td><td><code>I(ss)</code></td><td>single → signed/unsigned int</td></tr>
-  <tr><td><code>dtosi dtoui</code></td><td><code>I(dd)</code></td><td>double → signed/unsigned int</td></tr>
-  <tr><td><code>swtof uwtof</code></td><td><code>F(ww)</code></td><td>signed/unsigned word → float</td></tr>
-  <tr><td><code>sltof ultof</code></td><td><code>F(ll)</code></td><td>signed/unsigned long → float</td></tr>
-</table>
-<p>No narrowing instruction exists — subtyping covers it.</p>
+	<h3>Conversions</h3>
+	<table>
+		<tr>
+			<th>Op</th>
+			<th>Type string</th>
+			<th>Meaning</th>
+		</tr>
+		<tr>
+			<td><code>extsb extub extsh extuh</code></td>
+			<td><code>I(ww)</code></td>
+			<td>sign/zero-extend 8/16-bit field to word or long</td>
+		</tr>
+		<tr>
+			<td><code>extsw extuw</code></td>
+			<td><code>l(w)</code></td>
+			<td>word → long, signed/unsigned</td>
+		</tr>
+		<tr>
+			<td><code>exts</code> / <code>truncd</code></td>
+			<td><code>d(s)</code> / <code>s(d)</code></td>
+			<td>float precision up/down</td>
+		</tr>
+		<tr>
+			<td><code>stosi stoui</code></td>
+			<td><code>I(ss)</code></td>
+			<td>single → signed/unsigned int</td>
+		</tr>
+		<tr>
+			<td><code>dtosi dtoui</code></td>
+			<td><code>I(dd)</code></td>
+			<td>double → signed/unsigned int</td>
+		</tr>
+		<tr>
+			<td><code>swtof uwtof</code></td>
+			<td><code>F(ww)</code></td>
+			<td>signed/unsigned word → float</td>
+		</tr>
+		<tr>
+			<td><code>sltof ultof</code></td>
+			<td><code>F(ll)</code></td>
+			<td>signed/unsigned long → float</td>
+		</tr>
+	</table>
+	<p>No narrowing instruction exists — subtyping covers it.</p>
 
-<h3>Cast and copy</h3>
-<table>
-  <tr><th>Op</th><th>Type string</th><th>Meaning</th></tr>
-  <tr><td><code>cast</code></td><td><code>wlsd(sdwl)</code></td><td>bit-identical reinterpret int↔float of same width</td></tr>
-  <tr><td><code>copy</code></td><td><code>T(T)</code></td><td>plain move</td></tr>
-</table>
+	<h3>Cast and copy</h3>
+	<table>
+		<tr>
+			<th>Op</th>
+			<th>Type string</th>
+			<th>Meaning</th>
+		</tr>
+		<tr>
+			<td><code>cast</code></td>
+			<td><code>wlsd(sdwl)</code></td>
+			<td>bit-identical reinterpret int↔float of same width</td>
+		</tr>
+		<tr>
+			<td><code>copy</code></td>
+			<td><code>T(T)</code></td>
+			<td>plain move</td>
+		</tr>
+	</table>
 
-<h3>Calls</h3>
-<pre><code>[%r =ABITY] call $fn(ARG, ...)
+	<h3>Calls</h3>
+	<pre><code>[%r =ABITY] call $fn(ARG, ...)
 ARG := ABITY VAL | env VAL | ...</code></pre>
-<p>Calls carry every argument's type (for the C ABI); aggregates go by
-pointer; sub-word args need no extension; a return temporary is required
-whenever the callee returns one. Variadic calls put <code>...</code> between
-fixed and extra arguments.</p>
+	<p>Calls carry every argument's type (for the C ABI); aggregates go by
+		pointer; sub-word args need no extension; a return temporary is required
+		whenever the callee returns one. Variadic calls put <code>...</code> between
+		fixed and extra arguments.</p>
 
-<h3>Variadic callees</h3>
-<p><code>vastart (m)</code> initializes a vararg list (conservatively
-<code>alloc8 32</code>); <code>vaarg T(mmmm)</code> fetches the next
-base-typed argument (effectful — each call advances). Sizes per target:
-amd64_sysv 24, amd64_win 8, arm64 32, rv64 8 (all <code>align 8</code>).</p>
+	<h3>Variadic callees</h3>
+	<p><code>vastart (m)</code> initializes a vararg list (conservatively
+		<code>alloc8 32</code>); <code>vaarg T(mmmm)</code> fetches the next
+		base-typed argument (effectful — each call advances). Sizes per target:
+		amd64_sysv 24, amd64_win 8, arm64 32, rv64 8 (all <code>align 8</code>).
+	</p>
 
-<h2 id="phi">11. Phi — and why you may skip it</h2>
-<p><code>%y =w phi @ift 1, @iff 2</code> picks a value by predecessor block.
-But two easier paths exist:</p>
-<ol>
-  <li><strong>Memory variables</strong>: keep source variables in
-    <code>alloc4/8</code> slots with loads/stores (what LLVM frontends do).</li>
-  <li><strong>Non-SSA code</strong>: QBE repairs it itself — reassigning a
-    temporary without phi compiles correctly (the countdown loop below
-    relies on this).</li>
-</ol>
-<p>Use <code>phi</code> only when the SSA invariants hold — and double check
-predecessor lists: a phi in a loop header names the blocks that jump to it
-(e.g. <code>@start</code> and <code>@body</code> below, <em>not</em> the
-header itself unless the back edge targets it directly).</p>
+	<h2 id="phi">11. Phi — and why you may skip it</h2>
+	<p><code>%y =w phi @ift 1, @iff 2</code> picks a value by predecessor block.
+		But two easier paths exist:</p>
+	<ol>
+		<li><strong>Memory variables</strong>: keep source variables in
+			<code>alloc4/8</code> slots with loads/stores (what LLVM frontends do).
+		</li>
+		<li><strong>Non-SSA code</strong>: QBE repairs it itself — reassigning a
+			temporary without phi compiles correctly (the countdown loop below
+			relies on this).</li>
+	</ol>
+	<p>Use <code>phi</code> only when the SSA invariants hold — and double check
+		predecessor lists: a phi in a loop header names the blocks that jump to it
+		(e.g. <code>@start</code> and <code>@body</code> below, <em>not</em> the
+		header itself unless the back edge targets it directly).</p>
 
-<h2 id="examples">12. Examples (all verified)</h2>
-<p>Assembled with the vendored QBE; runnable ones were linked with
-<code>cc</code> and executed — observed outputs are shown. Small
-hand-written programs first, then verbatim programs from
-<code>libs/qbe/test/*.ssa</code>.</p>
+	<h2 id="examples">12. Examples (all verified)</h2>
+	<p>Assembled with the vendored QBE; runnable ones were linked with
+		<code>cc</code> and executed — observed outputs are shown. Small
+		hand-written programs first, then verbatim programs from
+		<code>libs/qbe/test/*.ssa</code>.
+	</p>
 
-<h3>Hello world (data + call + return)</h3>
-<pre><code>data $fmt = { b "hello world", b 0 }
+	<h3>Hello world (data + call + return)</h3>
+	<pre><code>data $fmt = { b "hello world", b 0 }
 
 export function w $main() {
 @start
 	%r =w call $puts(l $fmt)
 	ret 0
 }</code></pre>
-<pre class="out"><code>$ qbe hello.ssa -o hello.s &amp;&amp; cc hello.s -o hello &amp;&amp; ./hello
+	<pre class="out"><code>$ qbe hello.ssa -o hello.s &amp;&amp; cc hello.s -o hello &amp;&amp; ./hello
 hello world</code></pre>
 
-<h3>Countdown loop (fall-through + non-SSA reassignment)</h3>
-<pre><code>export function w $sum100() {
+	<h3>Countdown loop (fall-through + non-SSA reassignment)</h3>
+	<pre><code>export function w $sum100() {
 @start
 	%x =w copy 100
 	%s =w copy 0
@@ -317,10 +609,10 @@ hello world</code></pre>
 	jnz %x, @loop, @end
 @end
 	ret %s           # -&gt; 5050</code></pre>
-<p class="verdict">Verified: returns 5050 when called from C.</p>
+	<p class="verdict">Verified: returns 5050 when called from C.</p>
 
-<h3>Max of two (branches + phi)</h3>
-<pre><code>export function w $max2(w %a, w %b) {
+	<h3>Max of two (branches + phi)</h3>
+	<pre><code>export function w $max2(w %a, w %b) {
 @entry
 	%c =w csltw %a, %b
 	jnz %c, @less, @ge
@@ -332,10 +624,10 @@ hello world</code></pre>
 	%m =w phi @less %b, @ge %a
 	ret %m
 }</code></pre>
-<p class="verdict">Verified: max2(3,7)=7, max2(9,2)=9.</p>
+	<p class="verdict">Verified: max2(3,7)=7, max2(9,2)=9.</p>
 
-<h3>Sum 1..n (loop with parameters + phi)</h3>
-<pre><code>export function w $sumrange(w %n) {
+	<h3>Sum 1..n (loop with parameters + phi)</h3>
+	<pre><code>export function w $sumrange(w %n) {
 @start
 @loop
 	%i =w phi @start 0, @body %i1
@@ -349,12 +641,13 @@ hello world</code></pre>
 @end
 	ret %s
 }</code></pre>
-<p class="verdict">Verified: sumrange(10)=55. Note the phi predecessors are
-<code>@start</code> and <code>@body</code> — the blocks that actually jump to
-<code>@loop</code>.</p>
+	<p class="verdict">Verified: sumrange(10)=55. Note the phi predecessors are
+		<code>@start</code> and <code>@body</code> — the blocks that actually jump to
+		<code>@loop</code>.
+	</p>
 
-<h3>Factorial (recursion + calls)</h3>
-<pre><code>export function w $fact(w %n) {
+	<h3>Factorial (recursion + calls)</h3>
+	<pre><code>export function w $fact(w %n) {
 @start
 	%c =w cslew %n, 1
 	jnz %c, @base, @rec
@@ -366,10 +659,10 @@ hello world</code></pre>
 	%p =w mul %n, %r
 	ret %p
 }</code></pre>
-<p class="verdict">Verified: fact(5)=120, fact(0)=1.</p>
+	<p class="verdict">Verified: fact(5)=120, fact(0)=1.</p>
 
-<h3>Euclid's GCD (two-predecessor phi)</h3>
-<pre><code>export function w $gcd(w %a0, w %b0) {
+	<h3>Euclid's GCD (two-predecessor phi)</h3>
+	<pre><code>export function w $gcd(w %a0, w %b0) {
 @start
 @loop
 	%a =w phi @start %a0, @loop %r
@@ -379,12 +672,13 @@ hello world</code></pre>
 @end
 	ret %a
 }</code></pre>
-<p class="verdict">Verified: gcd(380,747)=1. Watch the update direction:
-<code>%a</code> takes <code>%r</code>, <code>%b</code> takes old
-<code>%a</code> — swapping them returns 367 (caught by running).</p>
+	<p class="verdict">Verified: gcd(380,747)=1. Watch the update direction:
+		<code>%a</code> takes <code>%r</code>, <code>%b</code> takes old
+		<code>%a</code> — swapping them returns 367 (caught by running).
+	</p>
 
-<h3>String length (pointer walk + bytes)</h3>
-<pre><code>export function l $str_len(l %s) {
+	<h3>String length (pointer walk + bytes)</h3>
+	<pre><code>export function l $str_len(l %s) {
 @start
 @loop
 	%p =l phi @start %s, @loop %p1
@@ -397,18 +691,18 @@ hello world</code></pre>
 	%len =l sub %i1, 1
 	ret %len
 }</code></pre>
-<p class="verdict">Verified: str_len("hello")=5, str_len("")=0.</p>
+	<p class="verdict">Verified: str_len("hello")=5, str_len("")=0.</p>
 
-<h3>Float arithmetic</h3>
-<pre><code>export function d $fma2(d %x) {
+	<h3>Float arithmetic</h3>
+	<pre><code>export function d $fma2(d %x) {
 @start
 	%t =d mul %x, d_2
 	%r =d add %t, d_0.5
 	ret %r            # fma2(3.0) = 6.5</code></pre>
-<p class="verdict">Verified by running.</p>
+	<p class="verdict">Verified by running.</p>
 
-<h3>Stack memory and loads</h3>
-<pre><code>export function w $total() {
+	<h3>Stack memory and loads</h3>
+	<pre><code>export function w $total() {
 @start
 	%A0 =l alloc4 8      # 8-byte stack array (2 words)
 	%A1 =l add %A0, 4
@@ -419,46 +713,46 @@ hello world</code></pre>
 	%v3 =w add %v1, %v2  # 42
 	ret %v3
 }</code></pre>
-<p class="verdict">Verified: returns 42.</p>
+	<p class="verdict">Verified: returns 42.</p>
 
-<h3>Bit-cast negation (cast)</h3>
-<pre><code>export function s $neg(s %f) {
+	<h3>Bit-cast negation (cast)</h3>
+	<pre><code>export function s $neg(s %f) {
 @start
 	%b0 =w cast %f
 	%b1 =w xor 2147483648, %b0   # flip msb
 	%rs =s cast %b1
 	ret %rs
 }</code></pre>
-<p class="verdict">Verified: neg(1.5)=-1.5.</p>
+	<p class="verdict">Verified: neg(1.5)=-1.5.</p>
 
-<h3>Closure environment (invisible to C)</h3>
-<pre><code>export function w $add(env %e, w %a, w %b) {
+	<h3>Closure environment (invisible to C)</h3>
+	<pre><code>export function w $add(env %e, w %a, w %b) {
 @start
 	%c =w add %a, %b
 	ret %c
 }</code></pre>
-<pre class="out"><code>/* called from C as: */ int add(int, int);
+	<pre class="out"><code>/* called from C as: */ int add(int, int);
 add(40, 2) == 42   /* verified */</code></pre>
 
-<h3>C to IL in one line (for frontend authors)</h3>
-<pre><code>/* int sq(int x) { return x * x; } */
+	<h3>C to IL in one line (for frontend authors)</h3>
+	<pre><code>/* int sq(int x) { return x * x; } */
 export function w $sq(w %x) {
 @start
 	%r =w mul %x, %x
 	ret %r            # sq(9) = 81, verified</code></pre>
 
-<h3>Calling printf (variadic call)</h3>
-<pre><code>data $fmt = { b "sum=%d\n", b 0 }
+	<h3>Calling printf (variadic call)</h3>
+	<pre><code>data $fmt = { b "sum=%d\n", b 0 }
 
 export function w $main() {
 @start
 	%r =w call $printf(l $fmt, ..., w 42)
 	ret 0
 }</code></pre>
-<pre class="out"><code>sum=42</code></pre>
+	<pre class="out"><code>sum=42</code></pre>
 
-<h3>Variadic callee (from <code>test/vararg1.ssa</code>)</h3>
-<pre><code>export
+	<h3>Variadic callee (from <code>test/vararg1.ssa</code>)</h3>
+	<pre><code>export
 function d $f(l %x, ...) {
 @start
 	%vp =l alloc8 32
@@ -476,12 +770,12 @@ function w $g(l %fmt, ...) {
 	%r =w call $print(l %fmt, l %vp)
 	ret %r
 }</code></pre>
-<pre class="out"><code># with a C driver forwarding va_list to vprintf:
+	<pre class="out"><code># with a C driver forwarding va_list to vprintf:
 g("Hell%c %s %g!\n", 'o', "world", f(42, "x", 42.0));
 Hello world 42!</code></pre>
 
-<h3>Digit printer (from <code>test/puts10.ssa</code> — stack buffer in a loop)</h3>
-<pre><code>export
+	<h3>Digit printer (from <code>test/puts10.ssa</code> — stack buffer in a loop)</h3>
+	<pre><code>export
 function $main() {
 @start
 	%y  =l alloc4 4
@@ -498,10 +792,10 @@ function $main() {
 @end
 	ret
 }</code></pre>
-<pre class="out"><code>0 1 2 3 4 5 6 7 8 9</code></pre>
+	<pre class="out"><code>0 1 2 3 4 5 6 7 8 9</code></pre>
 
-<h3>Array maximum (from <code>test/max.ssa</code> — data + scan)</h3>
-<pre><code>data $arr = { b 10, b -60, b 10, b 100, b 200, b 0 }
+	<h3>Array maximum (from <code>test/max.ssa</code> — data + scan)</h3>
+	<pre><code>data $arr = { b 10, b -60, b 10, b 100, b 200, b 0 }
 
 export
 function $test() {
@@ -523,11 +817,11 @@ function $test() {
 	storew %max, $a
 	ret
 }</code></pre>
-<p class="verdict">Verified: stores 200 into <code>$a</code> (NUL-terminated
-byte array, unsigned compare).</p>
+	<p class="verdict">Verified: stores 200 into <code>$a</code> (NUL-terminated
+		byte array, unsigned compare).</p>
 
-<h3>strcmp, compiler-style (from <code>test/strcmp.ssa</code>, excerpt)</h3>
-<pre><code>export function w $strcmp(l %s1.3.val,l %s2.5.val)
+	<h3>strcmp, compiler-style (from <code>test/strcmp.ssa</code>, excerpt)</h3>
+	<pre><code>export function w $strcmp(l %s1.3.val,l %s2.5.val)
 {
 @.37
 	%s1.3 =l	alloc8	8
@@ -561,12 +855,12 @@ byte array, unsigned compare).</p>
 	%.36 =w	sub	%.32,%.35
 		ret	%.36
 }</code></pre>
-<p class="verdict">Verified against five string pairs (equal, less, greater,
-prefix cases) — all correct. Note the spilled-pointer style real frontends
-emit, and dotted names (<code>%s1.3</code>, <code>@.5</code>).</p>
+	<p class="verdict">Verified against five string pairs (equal, less, greater,
+		prefix cases) — all correct. Note the spilled-pointer style real frontends
+		emit, and dotted names (<code>%s1.3</code>, <code>@.5</code>).</p>
 
-<h3>Double loop (from <code>test/double.ssa</code> — mixed-type phis)</h3>
-<pre><code>export
+	<h3>Double loop (from <code>test/double.ssa</code> — mixed-type phis)</h3>
+	<pre><code>export
 function $test() {
 @start
 	%x1 =d copy d_0.1
@@ -585,10 +879,10 @@ function $test() {
 	storew %i2, $a
 	ret
 }</code></pre>
-<p class="verdict">Verified: stores 55 into <code>$a</code>.</p>
+	<p class="verdict">Verified: stores 55 into <code>$a</code>.</p>
 
-<h3>Optimizer showcase (from <code>test/copy.ssa</code>)</h3>
-<pre><code>export function w $f() {
+	<h3>Optimizer showcase (from <code>test/copy.ssa</code>)</h3>
+	<pre><code>export function w $f() {
 @start
 	%x0 =w loadsb $a
 	# the extension must not be eliminated
@@ -597,12 +891,12 @@ function $test() {
 	%c =w ceql %x1, -1
 	ret %c
 }</code></pre>
-<p class="verdict">Verified with <code>char a = -1</code>: returns 1. (This
-is a regression test: the redundant-looking <code>extsb</code> must survive
-optimization.)</p>
+	<p class="verdict">Verified with <code>char a = -1</code>: returns 1. (This
+		is a regression test: the redundant-looking <code>extsb</code> must survive
+		optimization.)</p>
 
-<h3>Collatz with memo array (from <code>test/collatz.ssa</code>, excerpt)</h3>
-<pre><code>export
+	<h3>Collatz with memo array (from <code>test/collatz.ssa</code>, excerpt)</h3>
+	<pre><code>export
 function $test() {
 @start
 	%mem =l alloc4 4000
@@ -617,12 +911,12 @@ function $test() {
 	storew %cmax, $a
 	ret
 }</code></pre>
-<p class="verdict">Verified: stores 178 into <code>$a</code> (Project Euler
-14 for N=1000 — longest chain under 1000 starts at 871 with 178 terms…
-counted here in QBE's own convention). Three-predecessor phis work fine.</p>
+	<p class="verdict">Verified: stores 178 into <code>$a</code> (Project Euler
+		14 for N=1000 — longest chain under 1000 starts at 871 with 178 terms…
+		counted here in QBE's own convention). Three-predecessor phis work fine.</p>
 
-<h3>Thread-local storage (from <code>test/tls.ssa</code>, excerpt)</h3>
-<pre><code># skip amd64_win (pthread and tls not implemented)
+	<h3>Thread-local storage (from <code>test/tls.ssa</code>, excerpt)</h3>
+	<pre><code># skip amd64_win (pthread and tls not implemented)
 thread data $i = align 4 {w 42}
 data $fmti = align 1 {b "i%d==%d\n", b 0}
 
@@ -649,7 +943,7 @@ function l $thread(l %arg) {
 	%ret =l loadsw thread $i
 	ret %ret
 }</code></pre>
-<pre class="out"><code># linked with -pthread and run:
+	<pre class="out"><code># linked with -pthread and run:
 i0==42
 i1==402653226
 *(x+0)==1
@@ -657,8 +951,8 @@ i1==402653226
 *(x+8)==3
 *(x+12)==4</code></pre>
 
-<h3>Struct arguments across the C ABI (from <code>test/abi1.ssa</code>)</h3>
-<pre><code>type :mem = { b 17 }
+	<h3>Struct arguments across the C ABI (from <code>test/abi1.ssa</code>)</h3>
+	<pre><code>type :mem = { b 17 }
 
 export
 function $test() {
@@ -670,18 +964,19 @@ function $test() {
 	%r2 =w call $fcb(:mem %p, w 1, w 2, w 3, w 4, w 5, w 6, w 7, w 8, w 9, :mem %q)
 	ret
 }</code></pre>
-<pre class="out"><code># with a C driver defining fcb(mem, int×9, mem):
+	<pre class="out"><code># with a C driver defining fcb(mem, int×9, mem):
 m=ABCDEFGHIJKLMNOP n=abcdefghijklmnop 123456789</code></pre>
-<p>Large structs travel on the stack by pointer; QBE lowers the call to the
-platform ABI (see <code>doc/abi.txt</code>).</p>
+	<p>Large structs travel on the stack by pointer; QBE lowers the call to the
+		platform ABI (see <code>doc/abi.txt</code>).</p>
 
-<h2 id="targets">13. Backends &amp; vcode integration</h2>
-<p>One IL file compiles for any of six targets (<code>qbe -t</code>):
-<code>amd64_sysv</code> (default) · <code>amd64_apple</code> ·
-<code>amd64_win</code> · <code>arm64</code> · <code>arm64_apple</code> ·
-<code>rv64</code>.</p>
-<p>From Odin (see <code>libs/qbe/qbe.odin</code>, <code>qbe_lib.h</code>):</p>
-<pre><code>import qbe "../libs/qbe"
+	<h2 id="targets">13. Backends &amp; vcode integration</h2>
+	<p>One IL file compiles for any of six targets (<code>qbe -t</code>):
+		<code>amd64_sysv</code> (default) · <code>amd64_apple</code> ·
+		<code>amd64_win</code> · <code>arm64</code> · <code>arm64_apple</code> ·
+		<code>rv64</code>.
+	</p>
+	<p>From Odin (see <code>libs/qbe/qbe.odin</code>, <code>qbe_lib.h</code>):</p>
+	<pre><code>import qbe "../libs/qbe"
 
 qbe.compile_text(il_source, "out.s")              // "" = default target
 qbe.compile_text(il_source, "out.s", qbe.TARGET_ARM64)
@@ -694,14 +989,16 @@ qbe.compile_to_builder(il_source, &amp;b)           // appends asm, no temp file
 asm, _ := qbe.compile_to_string(il_source)   // fresh string version
 
 qbe.default_target() // -&gt; "amd64_sysv" on this machine</code></pre>
-<p>Caveats for frontend authors: malformed IL aborts the process (QBE's
-<code>err()</code> calls <code>exit()</code>, like the CLI exiting 1) — only
-feed it generated IL. Struct layout/padding is the frontend's job.</p>
+	<p>Caveats for frontend authors: malformed IL aborts the process (QBE's
+		<code>err()</code> calls <code>exit()</code>, like the CLI exiting 1) — only
+		feed it generated IL. Struct layout/padding is the frontend's job.
+	</p>
 
-<footer>Generated from QBE v1.3 vendored in <code>libs/qbe</code>
-(<code>c0818978</code>). Upstream reference: <code>libs/qbe/doc/il.txt</code>.
-All programs above were assembled with the vendored backend; runnable ones
-were linked and executed on Linux / amd64_sysv.</footer>
+	<footer>Generated from QBE v1.3 vendored in <code>libs/qbe</code>
+		(<code>c0818978</code>). Upstream reference: <code>libs/qbe/doc/il.txt</code>.
+		All programs above were assembled with the vendored backend; runnable ones
+		were linked and executed on Linux / amd64_sysv.</footer>
 
 </body>
+
 </html>
