@@ -89,49 +89,60 @@ lexer :: struct {
 	// Optional hook for user-defined keywords / special types.
 	// Called at the end of `get_token`, before returning, after the token is
 	// fully lexed — so it can hijack/override any original type, not just `.id`.
-	// Inspect `l.token.type` / `l.token.str` for the lexer's choice and set
-	// `l.token.type` (usually to `.custom`) to override it. Leave it alone
-	// to keep the original type.
+	// Gets both the live lexer (`l`) and a copy (`c`) it may modify freely
+	// (cursor, row, col, token, ...). Mutate the copy and return it; the
+	// returned copy replaces the real lexer. Use `l` for inspection and
+	// lookahead, `c` for mutation.
+	// Inspect `c.token.type` / `c.token.str` for the lexer's choice and set
+	// `m.token.type` (usually to `.custom`) to override it. Return `m`
+	// unmodified to keep the original lexing.
+	// (Note: Odin procedure parameters are immutable, so copy to a mutable
+	// local first: `m := c`, mutate `m`, then `return m`.)
 	// Use `peek_token(l, n)` for lookahead: it lexes the nth next token
 	// from a copy, so the real lexer is unaffected. Peeked tokens are raw
 	// (the `custom` hook is disabled while peeking, so a hook calling
 	// `peek_token` cannot recurse into itself).
-	// Treat the lexer as read-only inside the hook, except for `l.token`:
-	// do not advance `l.cursor`.
 	// Example - plain keywords:
-	//   is_my_keyword :: proc(l: ^lexer) {
-	//     if l.token.type == .id && (l.token.str == "mytype" || l.token.str == "foreach") {
-	//       l.token.type = .custom
+	//   is_my_keyword :: proc(l: ^lexer, c: lexer) -> lexer {
+	//     m := c
+	//     if m.token.type == .id && (m.token.str == "mytype" || m.token.str == "foreach") {
+	//       m.token.type = .custom
 	//     }
+	//     return m
 	//   }
 	//   l.custom = is_my_keyword
 	// Example - hijack an original type (e.g. treat `**` power as custom):
-	//   hijack :: proc(l: ^lexer) {
-	//     if l.token.type == .power do l.token.type = .custom
+	//   hijack :: proc(l: ^lexer, c: lexer) -> lexer {
+	//     m := c
+	//     if m.token.type == .power do m.token.type = .custom
+	//     return m
 	//   }
 	// Example - detect `<name> :: fn` (vcode fn definition):
 	//   (`::` lexes as two `:` puncts, so look 3 tokens ahead.)
-	//   is_fn_name :: proc(l: ^lexer) {
-	//     if l.token.type != .id do return
+	//   is_fn_name :: proc(l: ^lexer, c: lexer) -> lexer {
+	//     m := c
+	//     if m.token.type != .id do return m
 	//     c1, ok1 := peek_token(l, 1)
 	//     c2, ok2 := peek_token(l, 2)
 	//     c3, ok3 := peek_token(l, 3)
-	//     if !ok1 || !ok2 || !ok3 do return
-	//     if c1.type != .punct || c1.intlit != ':' do return
-	//     if c2.type != .punct || c2.intlit != ':' do return
-	//     if c3.type == .id && c3.str == "fn" do l.token.type = .custom
+	//     if !ok1 || !ok2 || !ok3 do return m
+	//     if c1.type != .punct || c1.intlit != ':' do return m
+	//     if c2.type != .punct || c2.intlit != ':' do return m
+	//     if c3.type == .id && c3.str == "fn" do m.token.type = .custom
+	//     return m
 	//   }
-	custom:  proc(l: ^lexer),
+	custom:  proc(l: ^lexer, c: lexer),
 }
 
 token :: struct {
-	type:     token_id,
-	intlit:   i64,
-	floatlit: f64,
-	str:      string,
-	file:     string,
-	row:      uint,
-	col:      uint,
+	type:        token_id,
+	intlit:      i64,
+	floatlit:    f64,
+	str:         string,
+	file:        string,
+	row:         uint,
+	col:         uint,
+	custom_data: u64,
 }
 
 decode_escapes :: proc(raw: string, file: string, row: uint, col: uint) -> (string, bool) {
@@ -720,11 +731,10 @@ get_token :: proc(l: ^lexer) -> bool {
 	}
 
 	// User hook: runs at the end, before returning, so it can hijack/override
-	// any lexed token (id, number, string, op, punct, ...). The hook mutates
-	// `l.token` directly (usually `l.token.type = .custom`); leaving it alone
-	// keeps the lexer's original type.
+	// any lexed token (id, number, string, op, punct, ...). The hook gets the
+	// live lexer plus a copy it may modify freely;
 	if l.custom != nil {
-		l.custom(l)
+		l.custom(l, l^)
 	}
 
 	return true
