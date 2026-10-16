@@ -42,8 +42,12 @@ main :: proc() {
 		l.custom = lexer_custom
 
 		for lex.get_token(&l) {
-			if !compile_to_qbe(&l, &sb) do os.exit(1)
+			if !compile_to_qbe(&l, &sb) {
+				os.exit(1)
+			}
 		}
+		fmt.println(string(sb.buf[:]))
+
 
 	}
 

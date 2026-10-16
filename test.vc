@@ -1,6 +1,6 @@
 
-main :: fn(): int {
-  return 0;
+main :: fn(): i64 {
+  return 0
 }
 
 // main :: fn(int argc, char** argv) {
