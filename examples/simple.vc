@@ -1,0 +1,3 @@
+main :: fn(): i64 {
+  return 69
+}

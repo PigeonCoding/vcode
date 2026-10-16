@@ -13,7 +13,7 @@ L_Custom :: enum {
 base_type_to_qbe :: proc(s: string) -> qbe_types {
 	switch s {
 	case "void":
-		return .none
+		return .void
 	case "i32":
 		return .I32
 	case "i64":
@@ -35,9 +35,10 @@ qbe_types :: enum {
 	I64,
 	F32,
 	F64,
+	void,
 }
 
-qbe_types_str := []string{"", "w", "l", "s", "d"}
+qbe_types_str := []string{"", "w", "l", "s", "d", ""}
 
 lexer_custom :: proc(l: ^lex.lexer, lc: lex.lexer) {
 	c := lc
@@ -115,6 +116,13 @@ lexer_custom :: proc(l: ^lex.lexer, lc: lex.lexer) {
 	}
 }
 
+parse_type :: proc(l: ^lex.lexer, out: ^strings.Builder) -> qbe_types {
+	if l.token.type == .id {
+		return base_type_to_qbe(l.token.str)
+	}
+	return .none
+}
+
 
 compile_to_qbe :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
 	#partial switch l.token.type {
@@ -122,6 +130,7 @@ compile_to_qbe :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
 		#partial switch cast(L_Custom)l.token.custom_data {
 		case .ret:
 			if !lex.get_token(l) do return false
+			// args
 			assert(l.token.type == .intlit, "have not implemented returning non int const values")
 			fmt.sbprintf(out, "  ret %d\n", l.token.intlit)
 			if !lex.get_token(l) do return false
@@ -142,25 +151,42 @@ compile_to_qbe :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
 				qbe_types_str[base_type_to_qbe(type)],
 				name,
 			)
-			s := len(out.buf)
+			// s := len(out.buf)
 
 			if !lex.get_token(l) do return false
 			if !lex.get_token(l) do return false
 			if !lex.get_token(l) do return false
 			if !lex.get_token(l) do return false
+			assert(l.token.intlit == '(', "no '(' found after fn")
 			if !lex.get_token(l) do return false
+
+			for !(l.token.type == .punct && l.token.intlit == ')') {
+				if l.token.type != .id {
+					fmt.eprintln("expected id after (")
+					return false
+				}
+
+				name := l.token.str
+				if !lex.get_token(l) do return false
+				assert(l.token.intlit == ':', "expected : after arg name")
+				if !lex.get_token(l) do return false
+				t := parse_type(l, out)
+				if t == .none do return false
+
+				fmt.sbprintf(out, " %s %%%s, ", qbe_types_str[t], name)
+
+				if !lex.get_token(l) do return false
+				if l.token.intlit == ',' do if !lex.get_token(l) do return false
+			}
+
+
 			assert(l.token.intlit == ')', "heven't implemented function argument parsing")
 			if !lex.get_token(l) do return false
 			if !lex.get_token(l) do return false
 			if !lex.get_token(l) do return false
-			fmt.sbprintf(out, ")\n")
-			fmt.sbprintf(
-				out,
-				"function %s $%s() {{\n",
-				qbe_types_str[base_type_to_qbe(type)],
-				name,
-			)
+			fmt.sbprintf(out, ") ")
 
+			fmt.sbprintf(out, "{{\n@start\n")
 
 			if !compile_to_qbe(l, out) do return false
 
@@ -182,7 +208,6 @@ compile_to_qbe :: proc(l: ^lex.lexer, out: ^strings.Builder) -> bool {
 	case:
 		fmt.eprintfln("unknown token type ({})", l.token.type)
 		return false
-
 	}
 
 

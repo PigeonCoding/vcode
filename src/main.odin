@@ -2,6 +2,7 @@ package vcode
 
 import flag "../libs/flags"
 import lex "../libs/lexer"
+import qbe "../libs/qbe"
 import "core:fmt"
 import "core:os"
 import "core:strings"
@@ -35,6 +36,7 @@ main :: proc() {
 
 	l: lex.lexer
 	sb: strings.Builder
+	out: strings.Builder
 
 	for file in cont.remaining {
 		lexed: [dynamic]lex.token
@@ -46,11 +48,19 @@ main :: proc() {
 				os.exit(1)
 			}
 		}
-		fmt.println(string(sb.buf[:]))
 
+		fmt.println("--------")
+
+		fmt.println(string(sb.buf[:]))
+		if e := qbe.compile_to_builder(string(sb.buf[:]), &out); e != .None {
+			fmt.eprintln("error compiling qbe IL", e)
+			os.exit(1)
+		}
+		
+		fmt.println("--------")
+		
+		fmt.println(string(out.buf[:]))
 
 	}
 
 }
-
-
